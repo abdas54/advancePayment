@@ -1091,5 +1091,8 @@ this._oDialogCardType.open();
                 // Show total in a MessageToast (you can bind it to a Text field also)
                 sap.m.MessageToast.show("Total Amount: " + fTotalAmount);
             },
+            onEnterAmount: function(oEvent){
+                this.getView().byId("saleAmountIcon").setCount(oEvent.getParameter("value").toString())
+            }
         });
     });

@@ -2,12 +2,9 @@
    xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m"
 	xmlns:l="sap.ui.layout" xmlns:ndc="sap.ndc" xmlns:f="sap.ui.layout.form" xmlns:core="sap.ui.core">
   <Page id="page" title="{i18n>title}" enableScrolling="false" showHeader="false">
-		<headerContent>
-			<Button icon="sap-icon://print" tooltip="Print"/>
-		</headerContent>
+		
 		<content>
-			<!-- <ObjectHeader id="oh1" title="EROS" titleActive="true" titlePress="handleTitlePress" responsive="true" numberState="Success" number=""
-				numberUnit="" backgroundDesign="Translucent" fullScreenOptimized="true"/> -->
+			<HBox alignItems="Stretch" width="100%" class="cstmHBox">
 			<IconTabBar id="idIconTabBar" class="sapUiResponsiveContentPadding iconTabBarclass" expandable="false">
 				<items>
 					<IconTabFilter id="tranNumber" class="sapUiSmallMarginEnd" design="Horizontal" icon="sap-icon://documents" iconColor="Positive" count=""
@@ -17,20 +14,24 @@
 					<IconTabSeparator/>
 					<IconTabFilter id="customer" design="Horizontal" icon="sap-icon://customer" iconColor="Critical" count="" text="Customer" key="Overweight"/>
 					<IconTabSeparator/>
+					<IconTabFilter id="saleAmountIcon" showAll="true" count="" text="AED" key="All"/>
+						<IconTabSeparator/>
 					<IconTabFilter design="Horizontal" icon="sap-icon://print" iconColor="Critical" key="print"/>
 				</items>
 			</IconTabBar>
-			<Input id="saleAmount" class="sapUiSmallMarginBegin sapUiSmallMarginTop"  placeholder="Enter the Amount"
-				width="64%" >
-			</Input>
-			
-			
+			</HBox>
 			<HBox width="100%">
-				<VBox width="80%" height="60%">
-				<TextArea id="comments" class="sapUiSmallMarginBegin" width="80%"  growing="true" placeholder="Enter Comments" />
-				</VBox>
-				<VBox width="20%">
-					<l:VerticalLayout class="sapUiContentPadding equalColumns" width="100%">
+				<VBox alignItems="Stretch" width="60%" class="sapUiSmallMarginBegin" >
+			<Input id="saleAmount" class="sapUiSmallMarginBegin sapUiSmallMarginTop" change="onEnterAmount"  placeholder="Enter the Amount"
+				 >
+			</Input>
+			<TextArea id="comments" class="sapUiSmallMarginBegin" width="100%"  growing="true" placeholder="Enter Comments" />
+			</VBox>
+			
+			
+		
+				<VBox >
+					<l:VerticalLayout class=" sapUiSmallMarginBegin sapUiContentPadding equalColumns" width="100%">
 						
 						<GenericTile header="CUSTOMER" frameType="OneByHalf" press="onPressCustData" class="customTile">
 							<TileContent>
