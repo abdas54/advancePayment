@@ -525,6 +525,11 @@ sap.ui.define([
                 }
                 this.getView().setModel(cashModel, "cashCurrencyModel");
                 this.getView().setModel(showSection, "ShowPaymentSection");
+                if(this.getView().getModel("GiftVoucher")){
+                    this.getView().getModel("GiftVoucher").setData({});
+                    sap.ui.getCore().byId("gvPaymentList").setVisible(false);
+                    sap.ui.getCore().byId("giftVoucher").setValue("");
+                }
             },
             onPressClose: function() {
                 this._oDialogPayment.close();
@@ -1094,6 +1099,188 @@ this._oDialogCardType.open();
             },
             onEnterAmount: function(oEvent){
                 this.getView().byId("saleAmountIcon").setCount(oEvent.getParameter("value").toString())
+            },
+            onValidateGiftVoucher: function(oEvent){
+                this.btnEvent = oEvent.getSource();
+                var giftVoucher = sap.ui.getCore().byId("giftVoucher").getValue();
+                this.onValidateAdvReciept(oEvent,"E",giftVoucher);
+            },
+             onValidateAdvReciept: function(oEvent,mode,reciept){
+                var that = this;
+                var oModel = new JSONModel();
+                 this.oModel.read("/RedeemTransactionSet(Transaction='" + reciept + "',RedemptionType='" + mode +"')", {
+                    success: function (oData) {
+                       
+                      
+                        if(mode === "E"){
+                        oModel.setData({}); 
+                        oModel.setData(oData);
+                        that.getView().setModel(oModel,"GiftVoucher");
+                        sap.ui.getCore().byId("gvPaymentList").setVisible(true);
+                       
+                        }
+                        
+                    },
+                    error: function (oError) {
+                        if(mode === "E"){
+                        oModel.setData({}); 
+                        that.getView().setModel(oModel,"GiftVoucher");
+                        sap.ui.getCore().byId("gvPaymentList").setVisible(false);
+                       
+                        }
+                        sap.m.MessageBox.show(JSON.parse(oError.responseText).error.message.value, {
+                            icon: sap.m.MessageBox.Icon.Error,
+                            title: "Error",
+                            actions: [MessageBox.Action.OK],
+                            onClose: function (oAction) {
+                               
+                            }
+                        });
+                    }
+                });
+            },
+             onRedeemGVPayment: function(oEvent){
+                var that = this;
+                that.paymentId = that.paymentId + 1;
+                var paidAmount = 0;
+                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
+
+                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
+
+                }
+                var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
+                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
+                 MessageBox.confirm("Are you sure you want to redeem the Gift Voucher ?", {
+                        icon: MessageBox.Icon.Confirmation,
+                        title: "Confirmation",
+                        actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                        emphasizedAction: MessageBox.Action.YES,
+                        onClose: function (oAction) {
+                            if (oAction == "YES") {
+                               that.redeemVoucher(that.paymentId,"017","EROS Gift Voucher","EGV",balanceAmount,"GiftVoucher" );  
+                            }
+                        }
+                    });
+               
+              
+
+            },
+               redeemVoucher: function(paymentId,paymentMethod,paymentMethodName,paymentType1,balanceAmount,model){
+                var that = this;
+                var itemData = this.getView().getModel(model).getData();
+                var balanceAmt = 0;
+                if(itemData.RedemptionType === "E"){
+                    balanceAmt = itemData.BalanceAmount;
+                }
+                else{
+                    balanceAmt = balanceAmount;
+                }
+                var oPayload = {
+                    "Transaction": itemData.Transaction,
+                    "RedemptionType": itemData.RedemptionType,
+                    "ToBeRedeemedAmount": balanceAmt,
+                    "Currency": itemData.Currency,
+                    "RedeemedAmount" : itemData.RedeemedAmount,
+                    "BalanceAmount" : itemData.BalanceAmount,
+                    "TransactionAmount": itemData.TransactionAmount
+
+
+                }
+                if(parseInt(itemData.BalanceAmount) < parseInt(balanceAmt) ){
+                    oPayload.ToBeRedeemedAmount = itemData.BalanceAmount;
+                }
+
+                this.oModel.create("/RedeemTransactionSet", oPayload, {
+                    success: function (oData) {
+                        if (oData) {
+                            that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
+                              that.aPaymentEntries.push({
+                                "TransactionId": that.getView().byId("tranNumber").getCount().toString(),
+                                "PaymentId": that.paymentId.toString(),
+                                "PaymentDate": new Date(),
+                                "Amount": oPayload.ToBeRedeemedAmount.toString(),
+                                "Currency": "AED",
+                                "PaymentMethod": paymentMethod,
+                                "PaymentMethodName": paymentMethodName,
+                                "Tid": "",
+                                "Mid": "",
+                                "CardType": "",
+                                "CardLabel": "",
+                                "CardNumber": "",
+                                "AuthorizationCode": "",
+                                "CardReceiptNo": "",
+                                "PaymentType" : paymentType1,
+                                "VoucherNumber" : oData.Transaction,
+                                "SourceId" : ""
+                    
+
+                });
+                        }
+
+                        if(paymentType1 === "EGV"){
+                            that.updateBalanceAmount("Gift Voucher","GiftVoucher");
+                        }
+                        if(paymentType1 === "CREDIT_NOTE"){
+                            that.updateBalanceAmount("Credit Voucher","CreditNote");
+                            
+                        }
+                        if(paymentType1 === "ADVANCE_PAYMENT"){
+                            that.updateBalanceAmount("Advance Reciept","AdvancePayment");
+                        }
+                    },
+                    error: function (oError) {
+                        this.paymentEntSourceCounter = this.paymentEntSourceCounter + 1;
+                         if (JSON.parse(oError.responseText).error.message.value) {
+                            errMessage = JSON.parse(oError.responseText).error.message.value;
+                        }
+                        else {
+                            errMessage = "Error During Payment Transaction "
+                        }
+
+                        sap.m.MessageBox.show(errMessage, {
+                            icon: sap.m.MessageBox.Icon.Error,
+                            title: "Error",
+                            actions: [MessageBox.Action.OK],
+                            onClose: function (oAction) {
+
+                            }
+                        });
+                       
+                    }
+                });
+                
+
+              
+               
+            },
+            updateBalanceAmount: function(msg,modelName){
+                  var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
+                var paidAmount = 0;
+                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
+
+                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
+
+                }
+                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
+                if (balanceAmount <= 0) {
+                    sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
+                    sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
+                    sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                    sap.m.MessageToast.show( msg + " Redeemed Successfully");
+                    that.onPressPaymentTest();
+                }
+                else {
+                    sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
+                    sap.ui.getCore().byId("cash").setValue("");
+                    sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                    sap.m.MessageToast.show( msg + " Redeemed Successfully");
+                }
+                that.getView().getModel(modelName).setData({});
+                if(modelName === "GiftVoucher"){
+                    sap.ui.getCore().byId("giftVoucher").setValue("");
+                    sap.ui.getCore().byId("gvPaymentList").setVisible(false);
+                }
+               
             }
         });
     });

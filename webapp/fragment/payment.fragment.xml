@@ -73,13 +73,51 @@
 							</VBox>
 						</content>
 					</Panel>
-					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Gift Voucher' }">
-						<content>
-							<VBox class="sapUiSmallMargin">
-								<Input id="giftVoucher" placeholder="Enter Gift Voucher " liveChange="onCardNumberChange" maxLength="16"/>
-								<Button text="Redeem" press="onSubmit"/>
-							</VBox>
-						</content>
+					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'EGV' }">
+						  <content>
+                                <VBox class="sapUiSmallMargin">
+                                    <HBox>
+                                        <Input id="giftVoucher" placeholder="Enter Gift Payment "  class="inputStyle sapUiSmallMarginBottom">
+                                            <layoutData>
+                                                <FlexItemData growFactor="1"/>
+                                            </layoutData>
+                                        </Input>
+                                        <Button icon="sap-icon://validate" type="Transparent" iconDensityAware="true" class="sapUiSmallMarginBegin largeValidateButton" press="onValidateGiftVoucher"/>
+                                    </HBox>
+                                    <g:GridList class="sapUiSmallMarginTop"  id="gvPaymentList" visible="false" itemPress="onRedeemGVPayment" >
+                                        <g:items>
+                                            <g:GridListItem type="Active" highlight="Success">
+                                                <!-- <VBox class="sapUiSmallMargin"><Title text="{GiftVoucher>/Transaction}" /><Text text="{GiftVoucher>/BalanceAmount}" /><Text text="{GiftVoucher>/RedemptionType}" visible="false" /></VBox> -->
+                                                <l:Grid defaultSpan="XL4 L4 M6 S12" class="sapUiSizeCompact sapUiSmallMarginBegin sapUiTinyMarginTop">
+                                                    <VBox alignItems="Start">
+                                                        <Label text="Reciept Id:" class=" sapUiTinyMarginTop boldText"/>
+                                                        <Label text="{GiftVoucher>/Transaction}" class=" sapUiTinyMarginTop"/>
+                                                    </VBox>
+                                                    <VBox alignItems="Start">
+                                                        <Label text="Total Value:" class=" sapUiTinyMarginTop boldText"/>
+                                                        <Label text="{GiftVoucher>/TransactionAmount}" class=" sapUiTinyMarginTop"/>
+                                                    </VBox>
+                                                </l:Grid>
+                                                <l:Grid defaultSpan="XL4 L4 M6 S12" class="sapUiSizeCompact sapUiSmallMarginBegin sapUiTinyMarginTop">
+                                                    <VBox alignItems="Start">
+                                                        <Label text="Redeemed Value:" class=" sapUiTinyMarginTop boldText"/>
+                                                        <Label text="{GiftVoucher>/RedeemedAmount}" class=" sapUiTinyMarginTop"/>
+                                                    </VBox>
+                                                    <VBox alignItems="Start">
+                                                        <Label text="Balance Value:" class=" sapUiTinyMarginTop boldText"/>
+                                                        <Label text="{GiftVoucher>/BalanceAmount}" class=" sapUiTinyMarginTop"/>
+                                                    </VBox>
+                                                    <VBox visible="false" alignItems="Start">
+                                                        <Label text="Redemption Type:" class=" sapUiTinyMarginTop boldText"/>
+                                                        <Label text="{GiftVoucher>/RedemptionType}" class=" sapUiTinyMarginTop"/>
+                                                    </VBox>
+                                                </l:Grid>
+                                            </g:GridListItem>
+                                        </g:items>
+                                    </g:GridList>
+                                    <!-- <Button text="Submit"  press="onSubmit" /> -->
+                                </VBox>
+                            </content>
 					</Panel>
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Non-GV' }">
 						<content>
