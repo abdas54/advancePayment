@@ -672,13 +672,13 @@ sap.ui.define([
 
                 this.oModel.create("/SalesTransactionHeaderSet", oPayload, {
                     success: function (oData) {
+                    that.getView().setBusy(false);
+                       that.getView().byId("tranNumber").setCount(oData.TransactionId);
                         that.getView().setBusy(false);
-                        if (oData) {
-                            sap.m.MessageToast.show("Success");
-                        }
-                        if (!bflag) {
-                            window.location.reload(true);
-                        }
+                        	MessageBox.success("Advance Payment Posted Successfully.", {
+				            onClose: function (sAction) {
+					             window.location.reload(true);
+				            }});
                     },
                     error: function (oError) {
                         that.getView().setBusy(false);
