@@ -24,7 +24,7 @@
 									<RadioButton  text="Manual Mode" />
 							</RadioButtonGroup>
 							<VBox visible="{= ${ShowPaymentSection>/cardPaymentMode} === 0 }">
-							<Input id="creditAmount" placeholder="Enter Amount" change="onRetrieveTerminal" class="sapUiSmallMarginBottom"/>
+							<Input id="creditAmount" type="Number" placeholder="Enter Amount" change="onRetrieveTerminal" class="sapUiSmallMarginBottom"/>
 							<g:GridList items="{ShowPaymentSection>/Terminal}" noDataText="Enter Amount to Enable Terminal" itemPress="onPressTenderCard">
     							<g:items>
         							<g:GridListItem type="Active">
@@ -60,7 +60,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'CreditNote' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="creditNote" placeholder="Enter Credit Note " liveChange="onCardNumberChange" maxLength="16"/>
+								<Input id="creditNote" placeholder="Enter Credit Note " liveChange="onCardNumberChange" type="Number"/>
 								<Button text="Redeem" press="onSubmit"/>
 							</VBox>
 						</content>
@@ -68,7 +68,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Advance Payment' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="advPayment" placeholder="Enter Advance Payment " liveChange="onCardNumberChange" maxLength="16"/>
+								<Input id="advPayment" placeholder="Enter Advance Payment " liveChange="onCardNumberChange" type="Number"/>
 								<Button text="Submit" press="onSubmit"/>
 							</VBox>
 						</content>

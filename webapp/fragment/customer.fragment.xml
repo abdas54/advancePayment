@@ -45,7 +45,7 @@
                             </ComboBox>
                             <Input
                                 id="mobileNumber"
-                                type="Tel"
+                               type="Number"
                                 value="{custAddModel>/MobNo}"
                             /> </HBox>
                         <!-- </FlexBox> -->
