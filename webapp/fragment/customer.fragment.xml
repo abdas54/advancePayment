@@ -4,13 +4,13 @@
         <SearchField
                 id="phoneInput"
                 width="40%"
-                class="sapUiMediumMarginBeginEnd sapUiSmallMarginTop"
+                class="sapUiMediumMarginBeginEnd sapUiSmallMarginBottom sapUiSmallMarginTop inputStyle"
                 placeholder="Enter registered Mobile Number"
                 search="onSearchNumber"
             />
 			<!-- <Input class="sapUiSmallMarginEnd" id="phoneInput" width="40%" placeholder="Enter Customer Phone Number" liveChange="onPhoneChange"/> -->
 			<HBox>
-				<VBox class="sapUiSmallMargin">
+				<VBox >
 					<List items="{CustModel>/customerData}" mode="None" class="roundedList">
 						<StandardListItem title="{CustModel>option}" type="Active" press="onOptionSelect"/>
 					</List>
@@ -20,9 +20,32 @@
 						<content> -->
 							
 								<form:SimpleForm  columnsM="2" columnsL="2" columnsXL="2" visible="{= ${ShowSection>/selectedMode} === 'Basic Information' }">
+                                   <Label
+                            required="true"
+                            text="Customer Type"
+                        />
+                        <Select
+                            width="40%"
+                            id="customerType"
+                            change="onCustomerTypeChange"
+                            selectedKey="{custAddModel>/CustomerType}"
+                        >
+                            <items>
+                                <core:Item
+                                    key="0"
+                                    text=""
+                                />
+                                <core:Item
+                                    key="LOCAL"
+                                    text="LOCAL"
+                                />
+                                <core:Item
+                                    key="TOURIST"
+                                    text="TOURIST"
+                                />
+                            </items>
+                        </Select>
                                 
-                                <Label text="Customer Id" />
-                                <Input editable="false" value="{custAddModel>/Kunnr}"/>
                                 <Label text="Phone Number" />
                                  <!-- <FlexBox
                            
@@ -30,14 +53,15 @@
                             alignItems="Center"
                         > -->
                         <HBox>
-                            <ComboBox selectedKey="{custAddModel>/country_code}" 
-                                showSecondaryValues="true"
-                                items="{ path: 'CustomerModel>/ZER_COUNTRY_DETSet', sorter: { path: 'CustomerModel>CountryDesc' } }"
+                            <ComboBox selectedKey="{custAddModel>/Code}" 
+                                showSecondaryValues="true" filterSecondaryValues="true"
+                                class="inputStyle sapUiSmallMarginBottom"
+                                 items="{ path: '/CountryCodesSet', sorter: { path: 'CountryCode' } }"
                             >
-                                <core:ListItem
-                                    key="{CustomerModel>CountryCode}"
-                                    text="{CustomerModel>CountryCode}-{CustomerModel>CountryDesc}"
-                                    additionalText="{CustomerModel>CountryDesc}"
+                                 <core:ListItem
+                                    key="{CountryCode}"
+                                    text="{CountryCode}"
+                                    additionalText="{CountryName}"
                                 />
                                 <layoutData>
 								<FlexItemData growFactor="1"/>
@@ -45,34 +69,135 @@
                             </ComboBox>
                             <Input
                                 id="mobileNumber"
-                               type="Number"
-                                value="{custAddModel>/MobNo}"
-                            /> </HBox>
+                                type="Number"
+                                value="{custAddModel>/Mobile}"
+                                class="inputStyle sapUiSmallMarginBottom"
+                            >
+                            <layoutData>
+            <FlexItemData growFactor="3"/>
+        </layoutData> </Input> </HBox>
                         <!-- </FlexBox> -->
 
                                 <!-- <Input type="Tel" value="{custAddModel>/MobNo}"/> -->
                                 <Label text="First Name" />
-								<Input placeholder="Enter name" value="{custAddModel>/Name1}"/>
+								<Input placeholder="Enter name" value="{custAddModel>/FirstName}" class="inputStyle sapUiSmallMarginBottom"/>
                                 <Label text="Last Name" />
-								<Input placeholder="Enter name" value="{custAddModel>/Name2}"/>
+								<Input placeholder="Enter name" value="{custAddModel>/LastName}" class="inputStyle sapUiSmallMarginBottom"/>
 								<Label text="Email" />
-                                <Input  type="Email" value="{custAddModel>/Email}"/>
+                                <Input  type="Email" value="{custAddModel>/Email}" class="inputStyle sapUiSmallMarginBottom"/>
 								<Label  text="Date of Birth"/>
-                                <DatePicker  value="{custAddModel>/Dob}"/>
-                                <Label required="true" text="Customer Type"/>
-                                <Select  change="onCustomerTypeChange" selectedKey="{custAddModel>/CustType}">
-                                    <items>
-                                        <core:Item key="0" text=""/>
-                                        <core:Item key="1" text="Local"/>
-                                        <core:Item key="2" text="Tourist"/>
-                                    </items>
-                                </Select>
-                                <Label id="cardTypelbl" text="Card Type"/>
-                                <Input  value="{custAddModel>/CardType}"/>
-                                <Label id="issuedBylbl" text="Issued By"/>
-                                <Input  value="{custAddModel>/IssueBy}"/>
-                                <Label id="cardNumberlbl" text="Card Number"/>
-                                <Input  value="{custAddModel>/IdenCardNum}"/>
+                                <DatePicker id="birthDate"  value="{
+    path: 'custAddModel>/BirthDate',
+    type: 'sap.ui.model.type.Date',
+    formatOptions: {
+      pattern: 'dd-MMM-yy'
+    },
+    constraints: {
+      nullable: true
+    }
+  }" class="inputStyle sapUiSmallMarginBottom"/>
+
+  <Label text="Nationality" id="nationnalLbl" />
+
+                            <ComboBox width="40%"
+                                showSecondaryValues="true"
+                                filterSecondaryValues="true"
+                                selectedKey="{custAddModel>/Nationality}"
+                                items="{ path: '/CountryCodesSet', sorter: { path: 'Country' } }"
+                            >
+                                <core:ListItem
+                                    key="{Country}"
+                                    text="{CountryName}"
+                                    additionalText="{Country}"
+                                />
+                            </ComboBox>
+
+                            <Label id="residencelabl" text="Country of Residence" />
+
+                            <ComboBox width="40%"
+                                showSecondaryValues="true"
+                                filterSecondaryValues="true"
+                                selectedKey="{custAddModel>/Residence}"
+                                items="{ path: '/CountryCodesSet', sorter: { path: 'Country' } }"
+                            >
+                                <core:ListItem
+                                    key="{Country}"
+                                    text="{CountryName}"
+                                    additionalText="{Country}"
+                                />
+                            </ComboBox>
+                            
+                                <Label
+                            id="cardTypelbl"
+                            text="Identity Type"
+                        />
+
+                        <Select
+                            id="cardType"
+                            selectedKey="{custAddModel>/IdentityType}"
+                        >
+                            <items>
+                                <core:Item
+                                    key="0"
+                                    text=""
+                                />
+                                <core:Item
+                                    key="PASSPORT"
+                                    text="PASSPORT"
+                                />
+                            </items>
+                        </Select>
+
+                        <Label
+                            id="issuedBylbl"
+                            text="Identity Document Issued By"
+                        />
+                        <ComboBox
+                            id="issuedBy"
+                            showSecondaryValues="true"
+                            filterSecondaryValues="true"
+                            selectedKey="{custAddModel>/IdentityIssuedBy}"
+                            items="{ path: '/CountryCodesSet', sorter: { path: 'Country' } }"
+                        >
+                            <core:ListItem
+                                key="{Country}"
+                                text="{CountryName}"
+                                additionalText="{Country}"
+                            />
+                        </ComboBox>
+
+                        <Label
+                            id="cardNumberlbl"
+                            text="Identity Document Number"
+                        />
+                        <Input
+                            id="cardNumber"
+                            value="{custAddModel>/IdentityNumber}"
+                        />
+                        <Label
+                            id="cardExpirylbl"
+                            text="Identity Document Expiry Date"
+                        />
+
+                        <!-- <DatePicker
+                           displayFormat="dd MMMM yyyy" valueFormat="yyyy-MM-dd"
+                            width="40%"
+                            id="expiryDate"
+                            value="{custModel>/IdentityExpiry}"
+                        /> -->
+                        <DatePicker id="expiryDate"
+                            width="40%"
+                            value="{
+    path: 'custAddModel>/IdentityExpiry',
+    type: 'sap.ui.model.type.Date',
+    formatOptions: {
+      pattern: 'dd-MMM-yy'
+    },
+    constraints: {
+      nullable: true
+    }
+  }"
+                        />
                                 
 								</form:SimpleForm>
 							
@@ -89,24 +214,25 @@
 							<HBox>
 							<VBox class="sapUiMediumMarginBeginEnd" id="homeSection" width="30%">
                             <Label text="Address Line 1" />
-                            <Input value="{custAddModel>/home_add1}" />
+                            <Input value="{custAddModel>/HomeAddressLine1}" class="inputStyle sapUiSmallMarginBottom" />
                             <Label text="Address Line 2" />
-                            <Input value="{custAddModel>/home_add2}" />
+                            <Input value="{custAddModel>/HomeAddressLine2}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="Street / PO Box" />
-                            <Input value="{custAddModel>/home_po}" />
+                            <Input value="{custAddModel>/HomeStreet}"  class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="City" />
-                            <Input value="{custAddModel>/home_City}" />
+                            <Input value="{custAddModel>/HomeCity}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="Country" />
 
                             <ComboBox
                                 showSecondaryValues="true"
-                                selectedKey="{custAddModel>/home_Country}"
-                                items="{ path: 'CustomerModel>/ZER_COUNTRY_DETSet', sorter: { path: 'CustomerModel>CountryDesc' } }"
+                                filterSecondaryValues="true"
+                                selectedKey="{custAddModel>/HomeCountry}"
+                                items="{ path: '/CountryCodesSet', sorter: { path: 'Country' } }"
                             >
                                 <core:ListItem
-                                    key="{CustomerModel>Country}"
-                                    text="{CustomerModel>CountryDesc}"
-                                    additionalText="{CustomerModel>CountryDesc}"
+                                    key="{Country}"
+                                    text="{CountryName}"
+                                    additionalText="{Country}"
                                 />
                             </ComboBox>
 							</VBox>
@@ -118,23 +244,24 @@
                         >
    
                             <Label text="Address Line 1" />
-                            <Input value="{custAddModel>/off_add1}" />
+                            <Input value="{custAddModel>/OfficeAddressLine1}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="Address Line 2" />
-                            <Input value="{custAddModel>/off_add2}" />
+                            <Input value="{custAddModel>/OfficeAddressLine2}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="Street / PO Box" />
-                            <Input value="{custAddModel>/off_po}" />
+                            <Input value="{custAddModel>/OfficeStreet}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="City" />
-                            <Input value="{custAddModel>/off_City}" />
+                            <Input value="{custAddModel>/OfficeCity}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="Country" />
-                            <ComboBox
+                           <ComboBox
                                 showSecondaryValues="true"
-                                selectedKey="{custAddModel>/off_Country}"
-                                items="{ path: 'CustomerModel>/ZER_COUNTRY_DETSet', sorter: { path: 'CustomerModel>CountryDesc' } }"
+                                filterSecondaryValues="true"
+                                selectedKey="{custAddModel>/OfficeCountry}"
+                                items="{ path: '/CountryCodesSet', sorter: { path: 'Country' } }"
                             >
                                 <core:ListItem
-                                    key="{CustomerModel>Country}"
-                                    text="{CustomerModel>CountryDesc}"
-                                    additionalText="{CustomerModel>CountryDesc}"
+                                    key="{Country}"
+                                   text="{CountryName}"
+                                    additionalText="{Country}"
                                 />
                             </ComboBox>
                         </VBox>
@@ -146,23 +273,24 @@
                         >
                             
                             <Label text="Address Line 1" />
-                            <Input value="{custAddModel>/oth_Add1}" />
+                            <Input value="{custAddModel>/OtherAddressLine1}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="Address Line 2" />
-                            <Input value="{custAddModel>/oth_Add2}" />
+                            <Input value="{custAddModel>/OtherAddressLine2}" class="inputStyle sapUiSmallMarginBottom" />
                             <Label text="Street / PO Box" />
-                            <Input value="{custAddModel>/oth_po}" />
+                            <Input value="{custAddModel>/OtherStreet}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="City" />
-                            <Input value="{custAddModel>/oth_City}" />
+                            <Input value="{custAddModel>/OtherCity}" class="inputStyle sapUiSmallMarginBottom"/>
                             <Label text="Country" />
                             <ComboBox
                                 showSecondaryValues="true"
-                                selectedKey="{custAddModel>/oth_Country}"
-                                items="{ path: 'CustomerModel>/ZER_COUNTRY_DETSet', sorter: { path: 'CustomerModel>CountryDesc' } }"
+                                filterSecondaryValues="true"
+                                selectedKey="{custAddModel>/OtherCountry}"
+                                items="{ path: '/CountryCodesSet', sorter: { path: 'Country' } }"
                             >
                                 <core:ListItem
-                                    key="{CustomerModel>Country}"
-                                    text="{CustomerModel>CountryDesc}"
-                                    additionalText="{CustomerModel>CountryDesc}"
+                                    key="{Country}"
+                                    text="{CountryName}"
+                                    additionalText="{Country}"
                                 />
                             </ComboBox>
                         </VBox>
@@ -173,24 +301,32 @@
 					</Panel>
 					<Panel visible="{= ${ShowSection>/selectedMode} === 'Shipping Instruction' }">
 						<content>
-							<VBox class="sapUiSmallMargin">
-                            	<DatePicker value="{custAddModel>/shippingDate}" displayFormat="yyyy-MM-dd" valueFormat="yyyy-MM-dd"/>
+							<VBox >
+                            	<DatePicker value="{custAddModel>/shippingDate}" displayFormat="yyyy-MM-dd" valueFormat="yyyy-MM-dd" class="inputStyle sapUiSmallMarginBottom"/>
 								<!-- <DatePicker value="{'path':'custAddModel>/shippingDate','type':'sap.ui.model.type.Date','formatOptions': {'pattern': 'yyyy-MM-dd'}}" placeholder="Enter Delivery Date"/> -->
-								<TextArea value="{custAddModel>/ShippingInst}" width="550px" placeholder="Enter Delivery Instruction"/>
+								<TextArea value="{custAddModel>/ShippingInst}" width="550px" placeholder="Enter Delivery Instruction" class="inputStyle sapUiSmallMarginBottom"/>
+                                <Label text="Select Shipping Method :"/>
+                            
+                            	<RadioButtonGroup  columns="5"   selectedIndex="{custAddModel>/ShippingMethod}">
+			                            <RadioButton  text="HOME DELIVERY" />  
+			                            <RadioButton  text="HD Install HA" />
+			                            <RadioButton  text="HD Install panels" /> 
+		                        </RadioButtonGroup>
+							
 							</VBox>
 						</content>
 					</Panel>
-                    <Panel visible="{= ${ShowSection>/selectedMode} === 'Shipping Method' }">
+                    <!-- <Panel visible="{= ${ShowSection>/selectedMode} === 'Shipping Method' }">
 						<content>
-							<VBox class="sapUiSmallMargin">
-                            	<RadioButtonGroup  columns="5"  class="sapUiMediumMarginBottom" selectedIndex="{custAddModel>/ShippingMethod}">
+							<VBox >
+                            	<RadioButtonGroup  columns="5"   selectedIndex="{custAddModel>/ShippingMethod}">
 			                            <RadioButton  text="HOME DELIVERY" />  
 			                            <RadioButton  text="HD Install HA" />
 			                            <RadioButton  text="HD Install panels" /> 
 		                        </RadioButtonGroup>
 							</VBox>
 						</content>
-					</Panel>
+					</Panel> -->
 				</VBox>
 			</HBox>
 		</content>

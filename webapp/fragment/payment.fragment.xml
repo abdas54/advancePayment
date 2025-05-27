@@ -144,7 +144,7 @@
 						<content>
 							<VBox class="sapUiSmallMargin">
 								<Input id="cash" placeholder="Enter Amount " type="Number" maxLength="16" class="sapUiSmallMarginBottom" />
-								<Button  text="Submit" press="onCashSubmit"/>
+								<Button id="cashSbmtBtn" text="Submit" press="onCashSubmit"/>
 							</VBox>
 							
 						</content>
