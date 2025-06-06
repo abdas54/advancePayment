@@ -1,0 +1,78 @@
+<mvc:View controllerName="com.eros.advancepayment.controller.AdvPaymentCancel"
+   xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m"
+	xmlns:l="sap.ui.layout" xmlns:ndc="sap.ndc" xmlns:f="sap.ui.layout.form" xmlns:core="sap.ui.core">
+  <Page id="page" title="{i18n>title}" enableScrolling="false" showHeader="false">
+		
+		<content>
+			<HBox alignItems="Stretch" width="100%" class="cstmHBox">
+			<IconTabBar id="idIconTabBar" class="sapUiResponsiveContentPadding iconTabBarclass" expandable="false">
+				<items>
+					<IconTabFilter id="tranNumber" class="sapUiSmallMarginEnd" design="Horizontal" icon="sap-icon://documents" iconColor="Positive" count=""
+						text="Transaction Number" key="Ok"/>
+					<IconTabSeparator/>
+					<IconTabFilter id="cashier" design="Horizontal" icon="sap-icon://employee-lookup" iconColor="Critical" count="" text="Cashier" key="Heavy"/>
+					<IconTabSeparator/>
+					<IconTabFilter id="customer" design="Horizontal" icon="sap-icon://customer" iconColor="Critical" count="" text="Customer" key="Overweight"/>
+					<IconTabSeparator/>
+					<IconTabFilter id="saleAmountIcon" showAll="true" count="" text="AED" key="All"/>
+						<IconTabSeparator/>
+					<IconTabFilter design="Horizontal" icon="sap-icon://print" iconColor="Critical" key="print"/>
+				</items>
+			</IconTabBar>
+			</HBox>
+			<HBox width="100%">
+            
+			<VBox alignItems="Stretch" width="60%" class="sapUiSmallMarginBegin" >
+            <HBox class="sapUiSmallMarginTop">
+			<Input id="inpAdvanceReciept" class=" " type="Text" change="onSearch"  placeholder="Enter the Advance Reciept/Voucher Number"
+				 valueLiveUpdate="true"  >
+                 <layoutData>
+								<FlexItemData growFactor="1"/>
+							</layoutData>
+			</Input>
+             <Button press="onSearch" class=" cstmBtn sapUiSmallMarginBegin sapUiTinySmallMarginTop" text="Search" type="Transparent" />
+            </HBox>
+    <Table id="advPaymenttab" visible="false" >
+                                    <columns>
+                                        <Column width="6rem" hAlign="Begin" ><Text text="Amount" /></Column>
+                                        <Column width="8rem" hAlign="Center"><Text text="Customer Name" /></Column>
+                                        <Column width="8rem" hAlign="Center"><Text text="Remarks" /></Column>
+                                        
+                                    
+                                    </columns>
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                         
+                                            <Text id="tabAmount"  />
+                                            <Text id="tabCustomer"  />
+                                            <Text id="tabRemarks"  />
+                                            
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+            <Label class="sapUiMediumMarginTop" text="Enter Cancellation Comments:" />
+			<TextArea id="comments"  width="100%"  growing="true" placeholder="Enter Comments" />
+         
+			</VBox>
+			
+			
+		
+				<VBox >
+					<l:VerticalLayout class=" sapUiSmallMarginBegin sapUiContentPadding equalColumns" width="100%">
+						
+						<GenericTile header="CANCEL" frameType="OneByHalf" press="onPressCancel" class="customTile">
+							<TileContent>
+								<Button type="Transparent" icon="sap-icon://sys-cancel-2"/>
+							</TileContent>
+						</GenericTile>
+					
+						
+					</l:VerticalLayout>
+				</VBox>
+			</HBox>
+		</content>
+        
+	</Page>
+</mvc:View>

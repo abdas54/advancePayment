@@ -1,0 +1,25 @@
+<mvc:View controllerName="com.eros.advancepayment.controller.Home" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m">
+    <Page  showHeader="false">
+        <content>
+    
+            <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Advance Payment" press="fnPressAdvancePayment" >
+               <TileContent>
+                    <ImageContent src="sap-icon://batch-payments" />
+                </TileContent>
+            </GenericTile>
+           
+              <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Cancel Advance Payment" press="fnPressCancelAdvancePayment" >
+                <TileContent>
+                    <ImageContent src="sap-icon://sys-cancel-2" />
+                </TileContent>
+            </GenericTile>
+ 
+        
+       
+
+           
+       
+          
+        </content>
+    </Page>
+</mvc:View>

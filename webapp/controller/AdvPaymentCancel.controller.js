@@ -12,7 +12,7 @@ sap.ui.define([
     function (Controller, JSONModel, MessageToast, Fragment, MessageBox) {
         "use strict";
         var that;
-        return Controller.extend("com.eros.advancepayment.controller.Main", {
+        return Controller.extend("com.eros.advancepayment.controller.AdvPaymentCancel", {
             onInit: function () {
                 that = this;
                 $("body").css("zoom", "90%");
@@ -514,7 +514,7 @@ sap.ui.define([
                         }).then(function (oFragment) {
                             this._oDialogPayment = oFragment;
                             this.getView().getModel("ShowPaymentSection").setProperty("/selectedMode","");
-                            sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
+                            sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("inpAdvanceReciept").getValue()).toFixed(2));
                             this.getView().addDependent(this._oDialogPayment);
                             sap.ui.getCore().byId("cashSbmtBtn").setEnabled(true);
                             this._oDialogPayment.open();
@@ -524,7 +524,7 @@ sap.ui.define([
                         this.getView().getModel("ShowPaymentSection").setProperty("/selectedMode","");
                         sap.ui.getCore().byId("cashSbmtBtn").setEnabled(true);
                         this._oDialogPayment.open();
-                        sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
+                        sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("inpAdvanceReciept").getValue()).toFixed(2));
                         this._oDialogCashier.close();
                     }
                 }
@@ -706,7 +706,7 @@ sap.ui.define([
                     "GrossAmount": "0.00",
                     "Discount": "0.00",
                     "VatAmount": "0.00",
-                    "SaleAmount": this.getView().byId("saleAmount").getValue().toString(),
+                    "SaleAmount": this.getView().byId("inpAdvanceReciept").getValue().toString(),
                     "Currency": "AED",
                     "OriginalTransactionId": "", // Required for Return Sales
                     "CustomerName": this.getView().byId("customer").getCount().toString(),
@@ -937,459 +937,68 @@ sap.ui.define([
                 // sap.ui.getCore().byId("manCardApproveCode").setValue("");
                 // sap.ui.getCore().byId("manCardReciept").setValue("");
             },
-            onSubmitCardType: function () {
+            onPressCancel: function(){
                 var that = this;
-                var sAmount = that._oAmountCardInput.getValue();
-                var sCardLabel = that._oSelectCardLabel.getValue();
-                var sCardApproval = that._oSelectCardApproval.getValue();
-                var sCardReciept = that._oSelectCardReciept.getValue();
-                that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
-                that.paymentId = that.paymentId + 1;
-
-                if (!sAmount) {
-                    sap.m.MessageToast.show("Please enter an amount");
-                    return;
-                }
-                if (!sCardLabel) {
-                    sap.m.MessageToast.show("Please enter Card Label");
-                    return;
-                }
-                if (!sCardApproval) {
-                    sap.m.MessageToast.show("Please enter Card Approval Code");
-                    return;
-                }
-                if (!sCardReciept) {
-                    sap.m.MessageToast.show("Please enter Card Reciept Number");
-                    return;
-                }
-
-                that.aPaymentEntries.push({
-                    "TransactionId": that.getView().byId("tranNumber").getCount().toString(),
-                    "PaymentId": that.paymentId.toString(),
-                    "PaymentDate": new Date(),
-                    "Amount": sAmount.toString(),
-                    "Currency": "AED",
-                    "PaymentMethod": that.selectedCardPayMethod,
-                    "PaymentMethodName": that.selectedCardPayMethodName,
-                    "Tid": "",
-                    "Mid": "",
-                    "CardType": "",
-                    "CardLabel": "",
-                    "CardNumber": "",
-                    "AuthorizationCode": "",
-                    "CardReceiptNo": "",
-                    "PaymentType": "CARD",
-                    "VoucherNumber": "",
-                    "SourceId": "" //that.getView().byId("tranNumber").getCount().toString() + that.paymentEntSourceCounter.toString()
-
-
-                });
-
-                var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
-                var paidAmount = 0;
-                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
-
-                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
-
-                }
-                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
-                if (balanceAmount <= 0) {
-                    sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
-                    sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(true);
-                    sap.m.MessageToast.show("Manual Card Payment Successful");
-                    that.onPressPaymentTest();
-                }
-                else {
-                    sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
-                    sap.ui.getCore().byId("cash").setValue("");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(false);
-                    sap.m.MessageToast.show("Manual Card Payment Successful");
-                }
-                this._oDialogCardType.close();
-
-            },
-            onSelectNonGV: function (oEvent) {
-                var oSelectedItem = oEvent.getParameter("listItem").getBindingContext().getObject();
-                this._oSelectedReason = oSelectedItem; // Store the clicked item globally
-                this.nonGVPaymentMethod = oSelectedItem.PaymentMethod;
-                this.nonGVPaymentMethodName = oSelectedItem.PaymentMethodName;
-                // var oInput = new sap.m.Input({
-                //     placeholder: "Enter Amount",
-                //     type: "Number",
-                //     width:"60%"
-                // }).addStyleClass("sapUiSmallMarginBegin  sapUiSmallMarginTop sapUiSmallMarginBottom");
-                this._oDialogNonGV = null;
-                if (!this._oDialogNonGV) {
-                    this._oDialogNonGV = new sap.m.Dialog({
-                        title: this.nonGVPaymentMethodName,
-                        content: [],
-                        beginButton: new sap.m.Button({
-                            text: "Submit",
-                            press: this.onSubmitAmount.bind(this)
-                        }),
-                        endButton: new sap.m.Button({
-                            text: "Cancel",
-                            press: function () {
-                                this._oDialogNonGV.close();
-                            }.bind(this)
-                        })
-                    });
-                    this._oAmountInput = new sap.m.Input({
-                        placeholder: "Enter Amount",
-                        type: "Number",
-                        width: "60%"
-                    }).addStyleClass("sapUiSmallMarginBegin  sapUiSmallMarginTop sapUiSmallMarginBottom");
-
-                    this._oVoucherNumber = new sap.m.TextArea({
-                        placeholder: "Enter Voucher Number",
-                        type: "Number",
-                        width: "60%"
-                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom");
-
-                    this._oDialogNonGV.addContent(this._oAmountInput);
-                    this._oDialogNonGV.addContent(this._oVoucherNumber);
-                    this.getView().addDependent(this._oDialogNonGV);
-                }
-
-                // Clear previous input
-                this._oAmountInput.setValue("");
-                this._oVoucherNumber.setValue("");
-
-                this._oDialogNonGV.open();
-            },
-            onSubmitAmount: function () {
-                var that = this;
-                var sAmount = that._oAmountInput.getValue();
-                var sVoucherNumber = that._oVoucherNumber.getValue();
-                that.paymentId = that.paymentId + 1;
-                that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
-
-                if (!sAmount) {
-                    sap.m.MessageToast.show("Please enter an amount");
-                    return;
-                }
-                if (!sVoucherNumber) {
-                    sap.m.MessageToast.show("Please enter Voucher Number");
-                    return;
-                }
-
-                that.aPaymentEntries.push({
-                    "TransactionId": that.getView().byId("tranNumber").getCount().toString(),
-                    "PaymentId": that.paymentId.toString(),
-                    "PaymentDate": new Date(),
-                    "Amount": sAmount.toString(),
-                    "Currency": "AED",
-                    "PaymentMethod": that.nonGVPaymentMethod,
-                    "PaymentMethodName": that.nonGVPaymentMethodName,
-                    "Tid": "",
-                    "Mid": "",
-                    "CardType": "",
-                    "CardLabel": "",
-                    "CardNumber": "",
-                    "AuthorizationCode": "",
-                    "CardReceiptNo": "",
-                    "PaymentType": "NEGV",
-                    "VoucherNumber": sVoucherNumber,
-                    "SourceId": "" //that.getView().byId("tranNumber").getCount().toString() + that.paymentEntSourceCounter.toString()
-
-
-                });
-
-                var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
-                var paidAmount = 0;
-                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
-
-                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
-
-                }
-                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
-                if (balanceAmount <= 0) {
-                    sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
-                    sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(true);
-                    sap.m.MessageToast.show("Non EGV Payment Successful");
-                    that.onPressPaymentTest();
-                }
-                else {
-                    sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
-                    sap.ui.getCore().byId("cash").setValue("");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(false);
-                    sap.m.MessageToast.show("Non EGV Payment Successful");
-                }
-                this._oDialogNonGV.close();
-            },
-            oPayloadPayments: function (arrPayment) {
-                if (arrPayment.length > 0) {
-                    return arrPayment.map(item => {
-                        return {
-                            ...item,
-                            Amount: item.Amount.toString()
-                        };
-                    });
-                }
-                else {
-                    return [];
-                }
-            },
-            onSubmitNonGV: function () {
-                var oMultiInput = sap.ui.getCore().byId("multiInput");
-                var aTokens = oMultiInput.getTokens();
-                var fTotalAmount = 0;
-
-                aTokens.forEach(function (oToken) {
-                    var sTokenText = oToken.getText(); // Example: "Reason1 - 500"
-                    var aParts = sTokenText.split("-");
-
-                    if (aParts.length === 2) {
-                        var sAmt = aParts[1].trim(); // Take second part and remove spaces
-                        var fAmt = parseFloat(sAmt);
-
-                        if (!isNaN(fAmt)) {
-                            fTotalAmount += fAmt;
-                        }
-                    }
-                });
-
-                // Show total in a MessageToast (you can bind it to a Text field also)
-                sap.m.MessageToast.show("Total Amount: " + fTotalAmount);
-            },
-            onEnterAmount: function (oEvent) {
-                this.getView().byId("saleAmountIcon").setCount(oEvent.getParameter("value").toString())
-            },
-            onValidateGiftVoucher: function (oEvent) {
-                this.btnEvent = oEvent.getSource();
-                var giftVoucher = sap.ui.getCore().byId("giftVoucher").getValue();
-                this.onValidateAdvReciept(oEvent, "E", giftVoucher);
-            },
-            onValidateAdvReciept: function (oEvent, mode, reciept) {
-                var that = this;
-                var oModel = new JSONModel();
-                this.oModel.read("/RedeemTransactionSet(Transaction='" + reciept + "',RedemptionType='" + mode + "')", {
+                var oPayload = this.oPayload;
+                this.oPayload.Remarks = this.getView().byId("comments").getValue();
+         
+                    this.oModel.create("/SalesTransactionHeaderSet", oPayload, {
                     success: function (oData) {
-
-
-                        if (mode === "E") {
-                            oModel.setData({});
-                            oModel.setData(oData);
-                            that.getView().setModel(oModel, "GiftVoucher");
-                            sap.ui.getCore().byId("gvPaymentList").setVisible(true);
-
-                        }
-
+                        that.getView().setBusy(false);
+                        that.getView().byId("tranNumber").setCount(oData.TransactionId);
+                        MessageBox.success("Advance Payment Cancelled Successfully.", {
+                            onClose: function (sAction) {
+                                window.location.reload(true);
+                            }
+                        });
                     },
                     error: function (oError) {
-                        if (mode === "E") {
-                            oModel.setData({});
-                            that.getView().setModel(oModel, "GiftVoucher");
-                            sap.ui.getCore().byId("gvPaymentList").setVisible(false);
+                        that.getView().setBusy(false);
+                        that._oDialogPayment.setBusy(false);
+                        sap.m.MessageToast.show("Error");
+                    }
+                });
+            },
+            onSearch: function(){
+                var recieptNumber = this.getView().byId("inpAdvanceReciept").getValue();
+                 var aFilters = [];
+
+                aFilters.push(new sap.ui.model.Filter("TransactionId", sap.ui.model.FilterOperator.EQ, recieptNumber));
+                aFilters.push(new sap.ui.model.Filter("TransactionType", sap.ui.model.FilterOperator.EQ, "3"));
+                 this.oModel.read("/SalesTransactionHeaderSet", {
+                    filters :aFilters,
+                    urlParameters: {
+                        "$expand": "ToItems,ToDiscounts,ToPayments,ToSerials"
+                    },
+
+                    success: function (oData) {
+                        if(oData){
+                            that.oPayload = oData.results[0];
+                            that.getView().byId("advPaymenttab").setVisible(true);
+                            that.getView().byId("saleAmountIcon").setCount(oData.results[0].SaleAmount);
+                            that.getView().byId("tabAmount").setText(oData.results[0].SaleAmount);
+                            that.getView().byId("tabCustomer").setText(oData.results[0].CustomerName);
+                             that.getView().byId("customer").setCount(oData.results[0].CustomerName);
+                            that.getView().byId("tabRemarks").setText(oData.results[0].Remarks);
+
 
                         }
-                        sap.m.MessageBox.show(JSON.parse(oError.responseText).error.message.value, {
+                    },
+                    error: function (oError) {
+                        sap.m.MessageBox.show(
+                            JSON.parse(oError.responseText).error.message.value, {
                             icon: sap.m.MessageBox.Icon.Error,
                             title: "Error",
-                            actions: [MessageBox.Action.OK],
+                            actions: ["OK", "CANCEL"],
                             onClose: function (oAction) {
 
                             }
-                        });
-                    }
-                });
-            },
-            onRedeemGVPayment: function (oEvent) {
-                var that = this;
-                that.paymentId = that.paymentId + 1;
-                var paidAmount = 0;
-                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
-
-                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
-
-                }
-                var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
-                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
-                MessageBox.confirm("Are you sure you want to redeem the Gift Voucher ?", {
-                    icon: MessageBox.Icon.Confirmation,
-                    title: "Confirmation",
-                    actions: [MessageBox.Action.YES, MessageBox.Action.NO],
-                    emphasizedAction: MessageBox.Action.YES,
-                    onClose: function (oAction) {
-                        if (oAction == "YES") {
-                            that.redeemVoucher(that.paymentId, "017", "EROS Gift Voucher", "EGV", balanceAmount, "GiftVoucher");
                         }
-                    }
-                });
+                        );
 
-
-
-            },
-            redeemVoucher: function (paymentId, paymentMethod, paymentMethodName, paymentType1, balanceAmount, model) {
-                var that = this;
-                var itemData = this.getView().getModel(model).getData();
-                var balanceAmt = 0;
-                if (itemData.RedemptionType === "E") {
-                    balanceAmt = itemData.BalanceAmount;
-                }
-                else {
-                    balanceAmt = balanceAmount;
-                }
-                var oPayload = {
-                    "Transaction": itemData.Transaction,
-                    "RedemptionType": itemData.RedemptionType,
-                    "ToBeRedeemedAmount": balanceAmt,
-                    "Currency": itemData.Currency,
-                    "RedeemedAmount": itemData.RedeemedAmount,
-                    "BalanceAmount": itemData.BalanceAmount,
-                    "TransactionAmount": itemData.TransactionAmount
-
-
-                }
-                if (parseInt(itemData.BalanceAmount) < parseInt(balanceAmt)) {
-                    oPayload.ToBeRedeemedAmount = itemData.BalanceAmount;
-                }
-
-                this.oModel.create("/RedeemTransactionSet", oPayload, {
-                    success: function (oData) {
-                        if (oData) {
-                            that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
-                            that.aPaymentEntries.push({
-                                "TransactionId": that.getView().byId("tranNumber").getCount().toString(),
-                                "PaymentId": that.paymentId.toString(),
-                                "PaymentDate": new Date(),
-                                "Amount": oPayload.ToBeRedeemedAmount.toString(),
-                                "Currency": "AED",
-                                "PaymentMethod": paymentMethod,
-                                "PaymentMethodName": paymentMethodName,
-                                "Tid": "",
-                                "Mid": "",
-                                "CardType": "",
-                                "CardLabel": "",
-                                "CardNumber": "",
-                                "AuthorizationCode": "",
-                                "CardReceiptNo": "",
-                                "PaymentType": paymentType1,
-                                "VoucherNumber": oData.Transaction,
-                                "SourceId": ""
-
-
-                            });
-                        }
-
-                        if (paymentType1 === "EGV") {
-                            that.updateBalanceAmount("Gift Voucher", "GiftVoucher");
-                        }
-                        if (paymentType1 === "CREDIT NOTE") {
-                            that.updateBalanceAmount("Credit Voucher", "CreditNote");
-
-                        }
-                        if (paymentType1 === "ADVANCE PAYMENT") {
-                            that.updateBalanceAmount("Advance Reciept", "AdvancePayment");
-                        }
-                    },
-                    error: function (oError) {
-                        this.paymentEntSourceCounter = this.paymentEntSourceCounter + 1;
-                        if (JSON.parse(oError.responseText).error.message.value) {
-                            errMessage = JSON.parse(oError.responseText).error.message.value;
-                        }
-                        else {
-                            errMessage = "Error During Payment Transaction "
-                        }
-
-                        sap.m.MessageBox.show(errMessage, {
-                            icon: sap.m.MessageBox.Icon.Error,
-                            title: "Error",
-                            actions: [MessageBox.Action.OK],
-                            onClose: function (oAction) {
-
-                            }
-                        });
 
                     }
                 });
-
-
-
-
-            },
-            onLiveChange: function (oEvent) {
-                var oInput = oEvent.getSource();
-  var sRawValue = oInput.getFocusDomRef().value;
-  var sSanitized = sRawValue.replace(/[^0-9.]/g, ""); // Allow only digits
-  oInput.setValue(sSanitized);
-            },
-            updateBalanceAmount: function (msg, modelName) {
-                var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
-                var paidAmount = 0;
-                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
-
-                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
-
-                }
-                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
-                if (balanceAmount <= 0) {
-                    sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
-                    sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(true);
-                    sap.m.MessageToast.show(msg + " Redeemed Successfully");
-                    that.onPressPaymentTest();
-                }
-                else {
-                    sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
-                    sap.ui.getCore().byId("cash").setValue("");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(false);
-                    sap.m.MessageToast.show(msg + " Redeemed Successfully");
-                }
-                that.getView().getModel(modelName).setData({});
-                if (modelName === "GiftVoucher") {
-                    sap.ui.getCore().byId("giftVoucher").setValue("");
-                    sap.ui.getCore().byId("gvPaymentList").setVisible(false);
-                }
-
-            },
-            onDeleteManualPayment: function(oEvent){
-                var oModel = this.getView().getModel("ShowPaymentSection"); // Get the JSON model
-                var aEntries = oModel.getProperty("/allEntries"); // Get the array from the model
-                var oItem = oEvent.getParameter("listItem");
-                var oContext = oItem.getBindingContext("ShowPaymentSection");
-                var dataObj = oModel.getObject(oContext.sPath);
-                var iIndex = oContext.getPath().split("/").pop();
-                aEntries.splice(iIndex, 1);
-                //this.aPaymentEntries.splice(iIndex,1);
-                var balanceAmount = "";
-                if(dataObj.PaymentType === "CASH"){
-                var totSalBal = sap.ui.getCore().byId("totalSaleBalText").getText();
-                balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal)
-                sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(balanceAmount).toFixed(2));
-                this.getView().getModel("ShowPaymentSection").setProperty("/allEntries",this.aPaymentEntries)
-                this.getView().getModel("ShowPaymentSection").refresh();
-                }
-                else{
-                   this.deRedeemVoucher(dataObj);
-                }
-
-            },
-            deRedeemVoucher: function(dataObj){
-                var balanceAmount = "";
-                var that = this;
-                var data = {
-                    "PaymentType" : dataObj.PaymentType,
-                    "Amount" : dataObj.Amount,
-                    "VoucherNumber" : dataObj.VoucherNumber
-                }
-                this.oModel.create("/PaymentMethodsSet", data, {
-                    success: function (oData,response) {
-                var totSalBal = sap.ui.getCore().byId("totalSaleBalText").getText();
-                balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal)
-                sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(balanceAmount).toFixed(2));
-                that.getView().getModel("ShowPaymentSection").setProperty("/allEntries",that.aPaymentEntries)
-                that.getView().getModel("ShowPaymentSection").refresh(); 
-                        
-                    },
-                    error: function (oError) {
-                        
-
-                    }
-                });
-
-            },
+            }
         });
     });

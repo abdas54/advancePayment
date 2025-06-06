@@ -82,7 +82,7 @@
                                                 <FlexItemData growFactor="1"/>
                                             </layoutData>
                                         </Input>
-                                        <Button icon="sap-icon://validate" type="Transparent" iconDensityAware="true" class="sapUiSmallMarginBegin largeValidateButton" press="onValidateGiftVoucher"/>
+                                        <core:Icon src="sap-icon://validate" size="2rem" class="sapUiSmallMarginBegin" press="onValidateGiftVoucher"/>
                                     </HBox>
                                     <g:GridList class="sapUiSmallMarginTop"  id="gvPaymentList" visible="false" itemPress="onRedeemGVPayment" >
                                         <g:items>
@@ -201,6 +201,32 @@
 										<Button text="Submit" press="onSubmit"/>
 									</content>
 								</Panel>
+							</VBox>
+						</content>
+					</Panel>
+					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'View All Records' }">
+						<content>
+							<VBox >
+							 <Table mode="Delete"  delete="onDeleteManualPayment" items="{ShowPaymentSection>/allEntries}" >
+                                    <columns>
+                                        <Column width="4rem" hAlign="Begin" visible="false"><Text text="Seq" /></Column>
+                                        <Column width="4rem" hAlign="Center"><Text text="Payment Type" /></Column>
+                                        <Column width="8rem" hAlign="Center"><Text text="Voucher Number" /></Column>
+                                        <Column width="4rem" hAlign="Right"><Text text="Amount" /></Column>
+                                    
+                                    </columns>
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                         
+                                            <Text  text="{ShowPaymentSection>PaymentId}" />
+                                            <Text text="{ShowPaymentSection>PaymentType}" />
+                                            <Text text="{ShowPaymentSection>VoucherNumber}" />
+                                            <Text text="{ShowPaymentSection>Amount}" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
 							</VBox>
 						</content>
 					</Panel>

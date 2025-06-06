@@ -108,15 +108,41 @@
         "clearControlAggregation": false
       },
       "routes": [
+         {
+          "name": "Home",
+          "pattern": "",
+          "target": [
+            "Home"
+          ]
+        },
+        { "name" : "AdvPaymentCancel",
+        "pattern" : "AdvPaymentCancel",
+        "target" : ["AdvPaymentCancel"]
+          
+        },
         {
           "name": "RouteMain",
-          "pattern": ":?query:",
+          "pattern": "RouteMain",
           "target": [
             "TargetMain"
           ]
         }
       ],
       "targets": {
+        "Home" :{
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "Home",
+          "viewName": "Home"
+        },
+        "AdvPaymentCancel": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "AdvPaymentCancel",
+          "viewName": "AdvPaymentCancel"
+        },
         "TargetMain": {
           "viewType": "XML",
           "transition": "slide",
