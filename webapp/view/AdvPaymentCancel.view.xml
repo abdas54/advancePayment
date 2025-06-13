@@ -1,11 +1,11 @@
 <mvc:View controllerName="com.eros.advancepayment.controller.AdvPaymentCancel"
    xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m"
 	xmlns:l="sap.ui.layout" xmlns:ndc="sap.ndc" xmlns:f="sap.ui.layout.form" xmlns:core="sap.ui.core">
-  <Page id="page" title="{i18n>title}" enableScrolling="false" showHeader="false">
+  <Page id="page" title="{i18n>title}" enableScrolling="false" showHeader="false" class="noPaddingPage page"											>
 		
 		<content>
 			<HBox alignItems="Stretch" width="100%" class="cstmHBox">
-			<IconTabBar id="idIconTabBar" class="sapUiResponsiveContentPadding iconTabBarclass" expandable="false">
+			<IconTabBar id="idIconTabBar" class="customIconTabBar" expandable="false">
 				<items>
 					<IconTabFilter id="tranNumber" class="sapUiSmallMarginEnd" design="Horizontal" icon="sap-icon://documents" iconColor="Positive" count=""
 						text="Transaction Number" key="Ok"/>
@@ -62,9 +62,9 @@
 				<VBox >
 					<l:VerticalLayout class=" sapUiSmallMarginBegin sapUiContentPadding equalColumns" width="100%">
 						
-						<GenericTile header="CANCEL" frameType="OneByHalf" press="onPressCancel" class="customTile">
+						<GenericTile header="CANCEL" frameType="OneByHalf" press="onPressCancel" class="customTile" headerImage="sap-icon://sys-cancel-2">
 							<TileContent>
-								<Button type="Transparent" icon="sap-icon://sys-cancel-2"/>
+								<!--<Button type="Transparent" icon="sap-icon://sys-cancel-2"/>-->
 							</TileContent>
 						</GenericTile>
 					

@@ -78,20 +78,31 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
 .customTile {
     font-weight: bold !important;
     border-radius: 12px !important; /* rounded corners */
+     text-align: center !important;
+  background-color:  #a6b7c3 !important;
+   width: 225px !important;
 }
 
-.sapMGTHdrTxt>.sapMText {
+.sapMGTHdrTxt>.sapMText 
+{
     font-weight: bold !important;
     font-size: 17px !important;
-    
-}
+    }
 
-.cstmHBox {
+
+
+ .cstmHBox 
+{
     display: contents !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+
 }
 
-
-.inputStyle .sapMInputBaseInner {
+.inputStyle .sapMInputBaseInner 
+{
    
     border: 0px solid #c2c7cb4a !important;
     border-radius: 3px !important;
@@ -115,7 +126,8 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
     border: 1px solid black !important;
 }
 
-.inputStyle.sapMInputBaseIconPressed .sapMInputBaseIcon::before {
+.inputStyle.sapMInputBaseIconPressed .sapMInputBaseIcon::before 
+{
     color: #062646 !important;
     font-size: 1rem !important;
     height: 2.5rem !important;
@@ -158,7 +170,8 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
     height: 2rem !important;
    
 }
-.sapMLabel {
+.sapMLabel 
+{
     color: black !important;
     font-size: 1rem !important;
     font-family: sans-serif !important;
@@ -168,3 +181,71 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
     height: 2.5rem !important;
 }
 
+
+.sapMGTHdrIconImage {
+    color: #1f2123 !important;
+}
+
+.sapMTableTH {
+    background: #2f4156 !important;
+    
+}
+
+.customTableHeader .sapMListHdrText {
+    background-color: #f2f7f1 !important;
+    font-weight: bold;
+}
+
+.sapUiTableHeaderDataCell .sapMText, .sapMColumnHeader .sapMText {
+    color: #dde3e9 !important;
+}
+
+.page {
+    background-color: #c8d9e6 !important;
+
+}
+#__bar0--header {
+     background-color: #c8d9e6 !important;
+}
+
+.customTableHeader .sapMListTblHeader {
+    background-color: #0812db !important; /* light blue */
+}
+
+
+
+
+    
+/* Remove padding/margin from all parent containers */
+#container-com\.eros\.advancepayment--AdvPaymentCancel--page-cont,
+#container-com\.eros\.advancepayment--AdvPaymentCancel--page-cont > .sapMPage,
+#container-com\.eros\.advancepayment--AdvPaymentCancel--page-cont > .sapMPage > section,
+.noPaddingPage,
+.cstmHBox {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    background: #c8d9e6 !important;
+}
+
+
+.customIconTabBar {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    background-color: #c8d9e6 !important; 
+}
+
+/* Ensure the tab bar head also stretches and has no border radius */
+.customIconTabBar .sapMITBHead {
+    background-color: #c8d9e6 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+.customIconTabBar .sapMITH {
+    padding: 0 !important;
+}

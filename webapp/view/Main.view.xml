@@ -1,13 +1,13 @@
 <mvc:View controllerName="com.eros.advancepayment.controller.Main"
    xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m"
 	xmlns:l="sap.ui.layout" xmlns:ndc="sap.ndc" xmlns:f="sap.ui.layout.form" xmlns:core="sap.ui.core">
-  <Page id="page" title="{i18n>title}" enableScrolling="false" showHeader="false">
+  <Page id="page" title="{i18n>title}" enableScrolling="false" showHeader="false" class="noPaddingPage page">
 		
 		<content>
 			<HBox alignItems="Stretch" width="100%" class="cstmHBox">
-			<IconTabBar id="idIconTabBar" class="sapUiResponsiveContentPadding iconTabBarclass" expandable="false">
+			<IconTabBar id="idIconTabBar" class="customIconTabBar" expandable="false">
 				<items>
-					<IconTabFilter id="tranNumber" class="sapUiSmallMarginEnd" design="Horizontal" icon="sap-icon://documents" iconColor="Positive" count=""
+					<IconTabFilter id="tranNumber" class="sapUiSmallMarginEnd"  design="Horizontal" icon="sap-icon://documents" iconColor="Positive" count=""
 						text="Transaction Number" key="Ok"/>
 					<IconTabSeparator/>
 					<IconTabFilter id="cashier" design="Horizontal" icon="sap-icon://employee-lookup" iconColor="Critical" count="" text="Cashier" key="Heavy"/>
@@ -33,14 +33,14 @@
 				<VBox >
 					<l:VerticalLayout class=" sapUiSmallMarginBegin sapUiContentPadding equalColumns" width="100%">
 						
-						<GenericTile header="CUSTOMER" frameType="OneByHalf" press="onPressCustData" class="customTile">
+						<GenericTile header="CUSTOMER" frameType="OneByHalf" press="onPressCustData" class="customTile" headerImage="sap-icon://customer">
 							<TileContent>
-								<Button type="Transparent" icon="sap-icon://customer"/>
+								<!--<Button type="Transparent" icon="sap-icon://customer"/>-->
 							</TileContent>
 						</GenericTile>
-						<GenericTile header="PAYMENTS" frameType="OneByHalf" press="onPressPayments1" class="customTile">
+						<GenericTile header="PAYMENTS" frameType="OneByHalf" press="onPressPayments1" class="customTile" headerImage="sap-icon://money-bills">
 							<TileContent>
-								<Button type="Transparent" icon="sap-icon://money-bills"/>
+								<!--<Button type="Transparent" icon="sap-icon://money-bills"/>-->
 							</TileContent>
 						</GenericTile>
 						
