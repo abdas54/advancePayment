@@ -47,10 +47,10 @@ sap.ui.define([
                 this.CashierPwd="";
             },
              enableValidateBtn: function(oEvent){
-                if(oEvent.getSource().getId() === "__input0"){
+                if(oEvent.getSource().getId() === "cashId"){
                     this.cashierID = oEvent.getSource().getValue();
                 }
-                else if(oEvent.getSource().getId() === "__input1"){
+                else if(oEvent.getSource().getId() === "casPwd"){
                     this.CashierPwd = oEvent.getSource().getValue();
                 }
 
