@@ -313,21 +313,7 @@ sap.ui.define([
                     errorMessage += "Customer Type is required.\n";
                 }
 
-                // Additional fields for Tourist (CustType === "2")
-                if (custData.CustomerType === "TOURIST") {
-                    if (!custData.IdentityType || custData.IdentityType.trim() === "") {
-                        errorMessage += "Identity Type is required for Tourists.\n";
-                    }
-                    if (!custData.IdentityIssuedBy || custData.IdentityIssuedBy.trim() === "") {
-                        errorMessage += "Identity Document Issued By is required for Tourists.\n";
-                    }
-                    if (!custData.IdentityNumber || custData.IdentityNumber.trim() === "") {
-                        errorMessage += "Identity Document Number is required for Tourists.\n";
-                    }
-                     if (sap.ui.getCore().byId("expiryDate").getValue() === "") {
-                        errorMessage += "Identity Expiry Date is required.\n";
-                    }
-                }
+             
 
 
 
@@ -350,7 +336,7 @@ sap.ui.define([
 
 
                 var birthDate = sap.ui.getCore().byId("birthDate").getValue();
-                var expiryDate = sap.ui.getCore().byId("expiryDate").getValue();
+      
 
                 if (birthDate) {
                     data.BirthDate = new Date(birthDate);
@@ -358,12 +344,9 @@ sap.ui.define([
                 else {
                     data.BirthDate = null;
                 }
-                if (expiryDate) {
-                    data.IdentityExpiry = new Date(expiryDate);
-                }
-                else {
+               
                     data.IdentityExpiry = null;
-                }
+              
                 this.oModel.create("/CustomerSet", data, {
                     success: function (oData) {
                         that._oDialogCust.close();
@@ -465,19 +448,11 @@ sap.ui.define([
                 var that = this;
 
                 if (oEvent.getParameter("selectedItem").getProperty("key") === "TOURIST") {
-                    sap.ui.getCore().byId("cardTypelbl").setRequired(true);
-                    sap.ui.getCore().byId("issuedBylbl").setRequired(true);
-                    sap.ui.getCore().byId("cardNumberlbl").setRequired(true);
-                    sap.ui.getCore().byId("nationnalLbl").setRequired(true);
-                    sap.ui.getCore().byId("residencelabl").setRequired(true);
+                   
                     that.getView().getModel("custAddModel").setProperty("/Code", "");
                 }
                 else {
-                    sap.ui.getCore().byId("cardTypelbl").setRequired(false);
-                    sap.ui.getCore().byId("issuedBylbl").setRequired(false);
-                    sap.ui.getCore().byId("cardNumberlbl").setRequired(false);
-                    sap.ui.getCore().byId("nationnalLbl").setRequired(false);
-                    sap.ui.getCore().byId("residencelabl").setRequired(false);
+                    
                     that.getView().getModel("custAddModel").setProperty("/Code", "00971");
                 }
 
@@ -963,6 +938,12 @@ sap.ui.define([
                     this.oModel.create("/SalesTransactionHeaderSet", oPayload, {
                     success: function (oData) {
                         that.getView().setBusy(false);
+                         that._pAddRecordDialog.then(
+                    function (oValueHelpDialog) {
+                        
+                        oValueHelpDialog.setBusy(false);
+                    }.bind(that)
+                );
                         that.getView().byId("tranNumber").setCount(oData.TransactionId);
                         MessageBox.success("Advance Payment Cancelled Successfully.", {
                             onClose: function (sAction) {
@@ -1017,6 +998,148 @@ sap.ui.define([
 
                     }
                 });
+            },
+            onPressCan: function(){
+                this.OnSignaturePress();
+            },
+                OnSignaturePress: function () {
+                var that = this,
+                    oView = this.getView();
+                if (!this._pAddRecordDialog) {
+                    this._pAddRecordDialog = Fragment.load({
+                        id: oView.getId(),
+                        name: "com.eros.advancepayment.fragment.signaturePad",
+                        controller: this,
+                    }).then(function (oValueHelpDialog) {
+                        oView.addDependent(oValueHelpDialog);
+                        return oValueHelpDialog;
+                    });
+                }
+
+                this._pAddRecordDialog.then(
+                    function (oValueHelpDialog) {
+                        that.onClear();
+                        oValueHelpDialog.open();
+                    }.bind(that)
+                );
+            },
+            onSave: function () {
+                var that = this,
+                    token,
+                    dataUrl,
+                    oSvg = sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").getSVGString(),
+                    oSvgCash = sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePadCash").getSVGString();
+                this.oPaySignatureload = [];
+                // oName = sap.ui.core.Fragment.byId(this.getView().getId(), "idName").getValue(),
+                // oStaff = sap.ui.core.Fragment.byId(this.getView().getId(), "idStaff").getValue(),
+                // oComments = sap.ui.core.Fragment.byId(this.getView().getId(), "idComments").getValue();
+
+                if (!oSvg.includes('d=') || !oSvgCash.includes('d=')) {
+                    MessageBox.error('Signature is required');
+                    return false;
+                }
+                const svgBlob = new Blob([oSvg], {
+                    type: 'image/svg+xml'
+                });
+                const svgObjectUrl = globalThis.URL.createObjectURL(svgBlob);
+                const img = document.createElement('img');
+
+                const onImageLoaded = () => {
+                    const canvas = document.createElement('canvas');
+                    //canvas.width="350";
+                    //canvas.height="100";
+                    const context = canvas.getContext('2d');
+                    const createdImage = document.createElement('img');
+
+                    context.drawImage(img, 0, 0);
+                    createdImage.src = canvas.toDataURL('image/bmp');
+                    //binary code
+                    var oArray = (createdImage.src).split(";base64,")[1];
+                    var raw = window.atob(oArray);
+                    var rawLength = raw.length;
+                    var array = new Uint8Array(new ArrayBuffer(rawLength));
+                    for (var i = 0; i < rawLength; i++) {
+                        array[i] = raw.charCodeAt(i);
+                    }
+
+                    this.oPaySignatureload.push({
+                        "TransactionId": this.getView().byId("tranNumber").getCount(),
+                        "Value": oArray,
+                        "Mimetype": 'image/bmp',
+                        "SignType": "S"
+                    })
+
+
+                };
+
+                img.addEventListener('load', onImageLoaded);
+                img.src = svgObjectUrl;
+
+
+
+                const svgBlobCash = new Blob([oSvgCash], {
+                    type: 'image/svg+xml'
+                });
+                const svgObjectUrlCash = globalThis.URL.createObjectURL(svgBlobCash);
+                const imgCash = document.createElement('img');
+
+                const onImageLoadedCash = () => {
+                    const canvasCash = document.createElement('canvas');
+                    //canvas.width="350";
+                    //canvas.height="100";
+                    const contextCash = canvasCash.getContext('2d');
+                    const createdImageCash = document.createElement('img');
+
+                    contextCash.drawImage(imgCash, 0, 0);
+                    createdImageCash.src = canvasCash.toDataURL('image/bmp');
+                    //binary code
+                    var oArrayCash = (createdImageCash.src).split(";base64,")[1];
+                    var rawCash = window.atob(oArrayCash);
+                    var rawLengthCash = rawCash.length;
+                    var arrayCash = new Uint8Array(new ArrayBuffer(rawLengthCash));
+                    for (var j = 0; j < rawLengthCash; j++) {
+                        arrayCash[j] = rawCash.charCodeAt(j);
+                    }
+
+                    this.oPaySignatureload.push({
+                        "TransactionId": this.getView().byId("tranNumber").getCount(),
+                        "Value": oArrayCash,
+                        "Mimetype": 'image/bmp',
+                        "SignType": "C"
+                    })
+
+
+                };
+
+                imgCash.addEventListener('load', onImageLoadedCash);
+                imgCash.src = svgObjectUrlCash;
+                that._pAddRecordDialog.then(
+                    function (oValueHelpDialog) {
+                        that.onClear();
+                        oValueHelpDialog.setBusy(true);
+                    }.bind(that)
+                );
+                setTimeout(function(){
+                    that.onPressCancel();},1000)
+
+
+            },
+             onClear: function () {
+                sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
+                sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePadCash").clear();
+                // sap.ui.core.Fragment.byId(this.getView().getId(), "idName").setValue("");
+                // sap.ui.core.Fragment.byId(this.getView().getId(), "idStaff").setValue("");
+                // sap.ui.core.Fragment.byId(this.getView().getId(), "idComments").setValue("");
+            },
+               onDialogClose: function () {
+                this.onClear();
+                this._pAddRecordDialog.then(
+                    function (oValueHelpDialog) {
+                        oValueHelpDialog.close();
+                    }.bind(this)
+                );
             }
+
+            
         });
     });
