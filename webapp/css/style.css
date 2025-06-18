@@ -40,7 +40,7 @@
 /* Make each list item rounded */
 .roundedList .sapMLIB {
     margin: 8px;
-    padding: 12px;
+    padding: 1px;
     background: #f9f9f9; /* light background */
     border-radius: 12px; /* rounded corners */
     box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* light shadow */
@@ -58,7 +58,7 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
 }
 
 .sapMITH {
-    
+     background-color: #c8d9e6 !important;
     font-size: 0.5 !important;
 
 }
@@ -78,9 +78,8 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
 .customTile {
     font-weight: bold !important;
     border-radius: 12px !important; /* rounded corners */
-     text-align: center !important;
-  background-color:  #a6b7c3 !important;
-   width: 225px !important;
+    text-align: center !important;
+    background-color:  #a6b7c3 !important;
 }
 .customTileCust{
     font-weight: bold !important;
@@ -89,26 +88,20 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
     background-color:  #a6b7c3 !important;
     height: 4rem !important;
 }
-.sapMGTHdrTxt>.sapMText 
-{
+
+.sapMGTHdrTxt>.sapMText {
     font-weight: bold !important;
     font-size: 17px !important;
-    }
-
-
-
- .cstmHBox 
-{
-    display: contents !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box;
-
+    
 }
 
-.inputStyle .sapMInputBaseInner 
-{
+.cstmHBox {
+    display: contents !important;
+    background-color: #929da5 !important;
+}
+
+
+.inputStyle .sapMInputBaseInner {
    
     border: 0px solid #c2c7cb4a !important;
     border-radius: 3px !important;
@@ -132,8 +125,7 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
     border: 1px solid black !important;
 }
 
-.inputStyle.sapMInputBaseIconPressed .sapMInputBaseIcon::before 
-{
+.inputStyle.sapMInputBaseIconPressed .sapMInputBaseIcon::before {
     color: #062646 !important;
     font-size: 1rem !important;
     height: 2.5rem !important;
@@ -176,8 +168,7 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
     height: 2rem !important;
    
 }
-.sapMLabel 
-{
+.sapMLabel {
     color: black !important;
     font-size: 1rem !important;
     font-family: sans-serif !important;
@@ -186,26 +177,25 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
 .sapUiSizeCompact .sapMSlt {
     height: 2.5rem !important;
 }
-
-
-.sapMGTHdrIconImage {
-    color: #1f2123 !important;
+.largeValidateButton .sapMBtnInner {
+    height: 3rem !important;
+    padding: 0 1.5rem !important;
+    font-size: 1.2rem !important;
 }
 
-.sapMTableTH {
-    background: #2f4156 !important;
-    
+.largeValidateButton .sapMBtnIcon {
+    font-size: 1.5rem !important;
 }
 
-.customTableHeader .sapMListHdrText {
-    background-color: #f2f7f1 !important;
-    font-weight: bold;
+.boldText{
+    font-weight: bold !important;
 }
+div[id*="inputSales-popup"] {
+  margin-top: 15px !important;
+ 
+  box-shadow: none !important;
 
-.sapUiTableHeaderDataCell .sapMText, .sapMColumnHeader .sapMText {
-    color: #dde3e9 !important;
 }
-
 .page {
     background-color: #c8d9e6 !important;
 
@@ -213,45 +203,67 @@ html.sap-desktop .sapMITBFilter .sapMITBCount {
 #__bar0--header {
      background-color: #c8d9e6 !important;
 }
+html.sap-desktop .sapMITBFilter .sapMITBCount {
+    color: #151b30 !important;
+    font-family: var(--sapFontFamily) !important;
+    font-size: 1rem !important;
+}
+#application-comerossalesprocess-display-component---MainView--stocksgt-title-inner {
+text-align: center !important;
+margin-top: 15px !important;
+}
+
+#application-comerossalesprocess-display-component---MainView--customergt-title-inner {
+text-align: center !important;
+margin-top: 15px !important;
+}
+
+#application-comerossalesprocess-display-component---MainView--discountgt-title-inner {
+text-align: center !important;
+margin-top: 15px !important;
+}
+
+#application-comerossalesprocess-display-component---MainView--paymentsgt-title-inner {
+text-align: center !important;
+margin-top: 15px !important;
+}
+
+#application-comerossalesprocess-display-component---MainView--suspendgt-title-inner {
+text-align: center !important;
+margin-top: 15px !important;
+}
 
 .customTableHeader .sapMListTblHeader {
     background-color: #0812db !important; /* light blue */
 }
 
+.customTableHeader .sapMListHdrText {
+    background-color: #f2f7f1 !important;
+    font-weight: bold;
+}
 
-
-
+.sapMTableTH {
+    background: #2f4156 !important;
     
-/* Remove padding/margin from all parent containers */
-#container-com\.eros\.advancepayment--AdvPaymentCancel--page-cont,
-#container-com\.eros\.advancepayment--AdvPaymentCancel--page-cont > .sapMPage,
-#container-com\.eros\.advancepayment--AdvPaymentCancel--page-cont > .sapMPage > section,
-.noPaddingPage,
-.cstmHBox {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box;
-    background: #c8d9e6 !important;
+}
+.sapUiTableHeaderDataCell .sapMText, .sapMColumnHeader .sapMText {
+    color: #dde3e9 !important;
 }
 
-
-.customIconTabBar {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box;
-    background-color: #c8d9e6 !important; 
+.sapMGTHdrIconImage {
+    color: #1f2123 !important;
 }
-
-/* Ensure the tab bar head also stretches and has no border radius */
-.customIconTabBar .sapMITBHead {
-    background-color: #c8d9e6 !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box;
+.sapUiSizeCompact .sapMSlt>.sapMSltArrow {
+    line-height: 2.5rem !important;
 }
-.customIconTabBar .sapMITH {
-    padding: 0 !important;
+.signaturePad {
+  border: 2px solid #050202 !important;
+  border-radius: 5px !important;
+}
+.stickyHeaderBox {
+    position: sticky;
+    top: 0;
+    background-color: white; /* Optional: match Dialog background */
+    z-index: 2;
+    padding: 0.5rem;
 }

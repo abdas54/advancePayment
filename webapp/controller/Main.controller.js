@@ -476,16 +476,21 @@ sap.ui.define([
                     var oModel = new sap.ui.model.json.JSONModel({
                         totalAmount: "0.00",
                         paymentOptions: [{
-                            option: "Cash"
+                            option: "Cash",
+                            icon:"sap-icon://wallet"
                         }, {
-                            option: "Card"
+                            option: "Card",
+                            icon: "sap-icon://credit-card"
                         }, {
-                            option: "Non-GV"
+                            option: "Non-GV",
+                             icon: "sap-icon://money-bills"
                         },
                         {
-                            option: "EGV"
+                            option: "EGV",
+                             icon: "sap-icon://money-bills"
                         },{
-                            option :"View All Records"
+                            option :"View All Records",
+                             icon: "sap-icon://sum"
                         }]
                     });
                     this.getView().setModel(oModel, "PaymentModel");
@@ -528,7 +533,7 @@ sap.ui.define([
                 }
             },
             onOptionSelectPayment: function (oEvent) {
-                var sSelectedOption = oEvent.getSource().getTitle();
+                var sSelectedOption = oEvent.getSource().getProperty("header"); //oEvent.getSource().getTitle();
                 var showSection = new JSONModel();
                 showSection.setData({
                     "selectedMode": sSelectedOption,

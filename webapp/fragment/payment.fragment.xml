@@ -1,6 +1,6 @@
 <core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:form="sap.ui.layout.form" xmlns:f="sap.f.cards"
 	xmlns:l="sap.ui.layout" xmlns:g="sap.f">
-	<Dialog title="Payment" contentHeight="400px" contentWidth="1000px">
+	<Dialog title="Payment" contentHeight="600px" contentWidth="1000px">
 		<content>
 			<Label design="Bold" text="Sale Amount:" class="sapUiSmallMarginBegin sapUiSmallMarginEnd sapUiSmallMarginTop"/>
 			<Text id="totalAmountText"  class="sapUiSmallMarginEnd sapUiSmallMarginTop"/>
@@ -9,11 +9,18 @@
 			<Label design="Bold" text="Tender Change Amount:" class="sapUiMediumMarginBegin sapUiSmallMarginEnd sapUiSmallMarginTop"/>
 			<Text  id="totaltenderBal" class="sapUiSmallMarginEnd sapUiSmallMarginTop"/>
 
-			 <ScrollContainer class="sapUiSmallMarginTop" height="300px" vertical="true">
+			 <ScrollContainer class="sapUiSmallMarginTop" height="550px" vertical="true">
 			<HBox>
 				<VBox class="sapUiSmallMargin">
 					<List items="{PaymentModel>/paymentOptions}" mode="None" class="roundedList">
-						<StandardListItem title="{PaymentModel>option}" type="Active" press="onOptionSelectPayment"/>
+					<CustomListItem>
+                    <GenericTile  frameType="OneByHalf" press="onOptionSelectPayment" header="{PaymentModel>option}" class="customTileCust" headerImage="{PaymentModel>icon}">
+							<TileContent>
+								<!-- <Button type="Transparent" icon="sap-icon://product"/> -->
+							</TileContent>
+						</GenericTile>
+                    </CustomListItem>
+						<!-- <StandardListItem title="{PaymentModel>option}" type="Active" press="onOptionSelectPayment"/> -->
 					</List>
 				</VBox>
 				<VBox width="700px">

@@ -5,7 +5,7 @@
 		
 		<content>
 			<HBox alignItems="Stretch" width="100%" class="cstmHBox">
-			<IconTabBar id="idIconTabBar" class="customIconTabBar" expandable="false">
+			<IconTabBar id="idIconTabBar" class="cstmHBox page textIconBar" expandable="false">
 				<items>
 					<IconTabFilter id="tranNumber" class="sapUiSmallMarginEnd"  design="Horizontal" icon="sap-icon://documents" iconColor="Positive" count=""
 						text="Transaction Number" key="Ok"/>
