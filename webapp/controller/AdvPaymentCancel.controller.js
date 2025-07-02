@@ -453,7 +453,7 @@ sap.ui.define([
                 }
                 else {
                     
-                    that.getView().getModel("custAddModel").setProperty("/Code", "00971");
+                    that.getView().getModel("custAddModel").setProperty("/Code", "971");
                 }
 
             },
@@ -712,7 +712,9 @@ sap.ui.define([
                     "ToDiscounts": { "results": [] },
                     "ToPayments": { "results": this.oPayloadPayments(this.aPaymentEntries) },
                     "ToSerials": { "results": [] },
-                    "Remarks": this.getView().byId("comments").getValue()
+                    "Remarks": this.getView().byId("comments").getValue(),
+                    "ToSignature": { "results": this.oPaySignatureload },
+                    "CustomerType": that.oPayload.CustomerType,
                     // "ToPayments" : {"results" : this.oPayloadTablePayments()}
                 }
                 this.getView().setBusy(true);
