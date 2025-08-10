@@ -712,6 +712,8 @@ sap.ui.define([
                     "OriginalTransactionId": "", // Required for Return Sales
                     "CustomerName": this.getView().byId("customer").getCount().toString(),
                     "ContactNo": contactNumber,
+                    "CountryCode": this.getView().getModel("custAddModel").getData().Code,
+                    "Mobile" :this.getView().getModel("custAddModel").getData().Mobile,
                     "EMail": this.getView().getModel("custAddModel").getData().Email,
                     "Address": this.shippingAddress,
                     "ShippingInstruction": "",
