@@ -103,6 +103,8 @@
       nullable: true
     }
   }" class="inputStyle sapUiSmallMarginBottom"/>
+    <Label  text="TRN Number"/>
+  <Input value="{custAddModel>/TrnNumber}" class="inputStyle customInputHeight sapUiSmallMarginBottom" maxlength="30"/>
 
  
 

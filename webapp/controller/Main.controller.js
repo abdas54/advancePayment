@@ -715,6 +715,7 @@ sap.ui.define([
                     "CountryCode": this.getView().getModel("custAddModel").getData().Code,
                     "Mobile" :this.getView().getModel("custAddModel").getData().Mobile,
                     "EMail": this.getView().getModel("custAddModel").getData().Email,
+                    "TrnNumber" : this.getView().getModel("custAddModel").getData().TrnNumber,
                     "Address": this.shippingAddress,
                     "ShippingInstruction": "",
                     "DeliveryDate": new Date(),
