@@ -1127,11 +1127,14 @@ sap.ui.define([
 
             },
              onClear: function () {
-                sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
+               // sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
                 sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePadCash").clear();
                 // sap.ui.core.Fragment.byId(this.getView().getId(), "idName").setValue("");
                 // sap.ui.core.Fragment.byId(this.getView().getId(), "idStaff").setValue("");
                 // sap.ui.core.Fragment.byId(this.getView().getId(), "idComments").setValue("");
+            },
+              onClearCashierSignature: function(){
+                sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
             },
                onDialogClose: function () {
                 this.onClear();

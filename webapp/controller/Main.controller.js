@@ -760,9 +760,12 @@ sap.ui.define([
 
             },
              onClear: function () {
-                sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
+                //sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
                 sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePadCash").clear();
                
+            },
+            onClearCashierSignature: function(){
+                sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
             },
             onRetrieveTerminal: function (oEvent) {
                 this.cashAmount = oEvent.getParameter("value");
