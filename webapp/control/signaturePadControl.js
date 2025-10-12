@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/Control", "com/eros/advancepayment/control/library"], function(Control, library) {
+sap.ui.define(["sap/ui/core/Control", "com/eros/salesprocess/control/library"], function(Control, library) {
 	"use strict";
 
 	/**
@@ -11,7 +11,7 @@ sap.ui.define(["sap/ui/core/Control", "com/eros/advancepayment/control/library"]
 	 * @constructor
 	 * @public
 	 */
-	var oSignature = Control.extend("com.eros.advancepayment.control.signaturePadControl", {
+	var oSignature = Control.extend("com.eroserospos.control.signaturePadControl", {
 		metadata: {
 			properties: {
 				/**

@@ -22,7 +22,7 @@
 			</HBox>
 			<HBox width="100%">
 				<VBox alignItems="Stretch" width="60%" class="sapUiSmallMarginBegin" >
-			<Input id="saleAmount" class="sapUiSmallMarginBegin sapUiSmallMarginTop" type="Text" change="onEnterAmount"  placeholder="Enter the Amount"
+			<Input id="saleAmount" class="sapUiSmallMarginBegin sapUiSmallMarginTop customInputHeight inputStyle" type="Text" change="onEnterAmount"  placeholder="Enter the Amount"
 				 valueLiveUpdate="true" liveChange="onLiveChange" >
 			</Input>
 			<TextArea id="comments" class="sapUiSmallMarginBegin" width="100%"  growing="true" placeholder="Enter Comments" />

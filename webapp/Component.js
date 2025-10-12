@@ -21,6 +21,10 @@ sap.ui.define([
              * @override
              */
             init: function () {
+                const meta = document.createElement("meta");
+                meta.httpEquiv = "Content-Security-Policy";
+                meta.content = "upgrade-insecure-requests";
+                document.head.appendChild(meta);
                 // call the base component's init function
                 UIComponent.prototype.init.apply(this, arguments);
 

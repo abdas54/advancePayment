@@ -896,22 +896,22 @@ sap.ui.define([
                         placeholder: "Enter Amount",
                         type: "Number",
                         width: "60%"
-                    }).addStyleClass("sapUiSmallMarginBegin  sapUiSmallMarginTop sapUiSmallMarginBottom");
+                    }).addStyleClass("sapUiSmallMarginBegin  sapUiSmallMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
 
                     this._oSelectCardLabel = new sap.m.Input({
                         placeholder: "Enter Card Label",
                         width: "60%"
-                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom");
+                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
 
                     this._oSelectCardApproval = new sap.m.Input({
                         placeholder: "Enter Approval Code",
                         width: "60%"
-                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom");
+                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
 
                     this._oSelectCardReciept = new sap.m.Input({
                         placeholder: "Enter Card Reciept Number",
                         width: "60%"
-                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom");
+                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
 
                     this._oDialogCardType.addContent(this._oAmountCardInput);
                     this._oDialogCardType.addContent(this._oSelectCardLabel);

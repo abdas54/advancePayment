@@ -21,6 +21,15 @@
         data-sap-ui-async="true"
         data-sap-ui-frameOptions="trusted"
     ></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script src="lib/epos-2.27.0.js"></script>
+       
+    <script>
+
+        // Set worker source for rendering
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script id="locate-reuse-libs" src="./utils/locate-reuse-libs.js"
         data-sap-ui-manifest-uri="./manifest.json"
         data-sap-ui-componentName="com.eros.advancepayment">

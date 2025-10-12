@@ -24,7 +24,7 @@
             
 			<VBox alignItems="Stretch" width="60%" class="sapUiSmallMarginBegin" >
             <HBox class="sapUiSmallMarginTop">
-			<Input id="inpAdvanceReciept" class=" " type="Text" change="onSearch"  placeholder="Enter the Advance Reciept/Voucher Number"
+			<Input id="inpAdvanceReciept" class="customInputHeight inputStyle" type="Text" change="onSearch"  placeholder="Enter the Advance Reciept/Voucher Number"
 				 valueLiveUpdate="true"  >
                  <layoutData>
 								<FlexItemData growFactor="1"/>

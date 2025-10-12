@@ -31,7 +31,7 @@
 									<RadioButton  text="Manual Mode" />
 							</RadioButtonGroup>
 							<VBox visible="{= ${ShowPaymentSection>/cardPaymentMode} === 0 }">
-							<Input id="creditAmount" type="Number" placeholder="Enter Amount" change="onRetrieveTerminal" class="sapUiSmallMarginBottom"/>
+							<Input id="creditAmount" type="Number" placeholder="Enter Amount" change="onRetrieveTerminal" class="sapUiSmallMarginBottom customInputHeight inputStyle"/>
 							<g:GridList items="{ShowPaymentSection>/Terminal}" noDataText="Enter Amount to Enable Terminal" itemPress="onPressTenderCard">
     							<g:items>
         							<g:GridListItem type="Active">
@@ -67,7 +67,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'CreditNote' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="creditNote" placeholder="Enter Credit Note " liveChange="onCardNumberChange" type="Number"/>
+								<Input id="creditNote" placeholder="Enter Credit Note " class="customInputHeight inputStyle" liveChange="onCardNumberChange" type="Number"/>
 								<Button text="Redeem" press="onSubmit"/>
 							</VBox>
 						</content>
@@ -75,7 +75,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Advance Payment' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="advPayment" placeholder="Enter Advance Payment " liveChange="onCardNumberChange" type="Number"/>
+								<Input id="advPayment" placeholder="Enter Advance Payment " class="customInputHeight inputStyle" liveChange="onCardNumberChange" type="Number"/>
 								<Button text="Submit" press="onSubmit"/>
 							</VBox>
 						</content>
@@ -84,7 +84,7 @@
 						  <content>
                                 <VBox class="sapUiSmallMargin">
                                     <HBox>
-                                        <Input id="giftVoucher" placeholder="Enter Gift Payment "  class="inputStyle sapUiSmallMarginBottom">
+                                        <Input id="giftVoucher" placeholder="Enter Gift Payment "  class="inputStyle sapUiSmallMarginBottom customInputHeight inputStyle">
                                             <layoutData>
                                                 <FlexItemData growFactor="1"/>
                                             </layoutData>
@@ -150,7 +150,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Cash' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="cash" placeholder="Enter Amount " type="Number" maxLength="16" class="sapUiSmallMarginBottom" />
+								<Input id="cash" placeholder="Enter Amount " type="Number" maxLength="16" class="sapUiSmallMarginBottom customInputHeight inputStyle" />
 								<Button id="cashSbmtBtn" text="Submit" press="onCashSubmit"/>
 							</VBox>
 							
