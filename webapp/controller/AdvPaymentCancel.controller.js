@@ -940,12 +940,9 @@ sap.ui.define([
                     this.oModel.create("/SalesTransactionHeaderSet", oPayload, {
                     success: function (oData) {
                         that.getView().setBusy(false);
-                         that._pAddRecordDialog.then(
-                    function (oValueHelpDialog) {
-                        
-                        oValueHelpDialog.setBusy(false);
-                    }.bind(that)
-                );
+                       if (that._pAddRecordDialog) {
+                            that._pAddRecordDialog.setBusy(false);
+                        }
                         that.getView().byId("tranNumber").setCount(oData.TransactionId);
                         MessageBox.success("Advance Payment Cancelled Successfully.", {
                             onClose: function (sAction) {
@@ -1002,7 +999,7 @@ sap.ui.define([
                 });
             },
             onPressCan: function(){
-                this.OnSignaturePress();
+                this.onOpenSignaturePad();
             },
                 OnSignaturePress: function () {
                 var that = this,
@@ -1143,7 +1140,210 @@ sap.ui.define([
                         oValueHelpDialog.close();
                     }.bind(this)
                 );
-            }
+            },
+                  _initializeCanvas: function () {
+                this._initializeCanvas1();
+                this._initializeCanvas2();
+            },
+            _initializeCanvas1: function () {
+                const oCanvasControl = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas");
+                if (!oCanvasControl) {
+                    console.error("Canvas control not found");
+                    return;
+                }
+
+                const canvas = oCanvasControl.getDomRef(); // Get actual <canvas> DOM element
+                if (!canvas || !canvas.getContext) {
+                    console.error("Canvas DOM element not ready or invalid");
+                    return;
+                }
+
+                const ctx = canvas.getContext("2d");
+                let isDrawing = false;
+
+                const getEventPosition = (e) => {
+                    let x, y;
+                    if (e.touches && e.touches.length > 0) {
+                        x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+                        y = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+                    } else {
+                        x = e.clientX - canvas.getBoundingClientRect().left;
+                        y = e.clientY - canvas.getBoundingClientRect().top;
+                    }
+                    return {
+                        x,
+                        y
+                    };
+                };
+
+                const start = (e) => {
+                    isDrawing = true;
+                    ctx.beginPath();
+                    const pos = getEventPosition(e);
+                    ctx.moveTo(pos.x, pos.y);
+                    e.preventDefault();
+                };
+
+                const draw = (e) => {
+                    if (!isDrawing) return;
+                    const pos = getEventPosition(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    e.preventDefault();
+                };
+
+                const end = () => {
+                    isDrawing = false;
+                };
+
+                canvas.addEventListener("mousedown", start);
+                canvas.addEventListener("mousemove", draw);
+                canvas.addEventListener("mouseup", end);
+                canvas.addEventListener("mouseout", end);
+
+                canvas.addEventListener("touchstart", start, {
+                    passive: false
+                });
+                canvas.addEventListener("touchmove", draw, {
+                    passive: false
+                });
+                canvas.addEventListener("touchend", end);
+            },
+            _initializeCanvas2: function () {
+                const oCanvasControl = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas1");
+                if (!oCanvasControl) {
+                    console.error("Canvas control not found");
+                    return;
+                }
+
+                const canvas = oCanvasControl.getDomRef(); // Get actual <canvas> DOM element
+                if (!canvas || !canvas.getContext) {
+                    console.error("Canvas DOM element not ready or invalid");
+                    return;
+                }
+
+                const ctx = canvas.getContext("2d");
+                let isDrawing = false;
+
+                const getEventPosition = (e) => {
+                    let x, y;
+                    if (e.touches && e.touches.length > 0) {
+                        x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+                        y = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+                    } else {
+                        x = e.clientX - canvas.getBoundingClientRect().left;
+                        y = e.clientY - canvas.getBoundingClientRect().top;
+                    }
+                    return {
+                        x,
+                        y
+                    };
+                };
+
+                const start = (e) => {
+                    isDrawing = true;
+                    ctx.beginPath();
+                    const pos = getEventPosition(e);
+                    ctx.moveTo(pos.x, pos.y);
+                    e.preventDefault();
+                };
+
+                const draw = (e) => {
+                    if (!isDrawing) return;
+                    const pos = getEventPosition(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    e.preventDefault();
+                };
+
+                const end = () => {
+                    isDrawing = false;
+                };
+
+                canvas.addEventListener("mousedown", start);
+                canvas.addEventListener("mousemove", draw);
+                canvas.addEventListener("mouseup", end);
+                canvas.addEventListener("mouseout", end);
+
+                canvas.addEventListener("touchstart", start, {
+                    passive: false
+                });
+                canvas.addEventListener("touchmove", draw, {
+                    passive: false
+                });
+                canvas.addEventListener("touchend", end);
+            },
+            onClearSignature: function () {
+
+
+                const oCanvasControl1 = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas1");
+                const canvas1 = oCanvasControl1.getDomRef();
+                const ctx1 = canvas1.getContext("2d");
+                ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+            },
+            onClearCashierSignature: function () {
+                const oCanvasControl = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas");
+                const canvas = oCanvasControl.getDomRef();
+                const ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            },
+            onSaveSignature: function () {
+                var that = this;
+                this.oPaySignatureload = [];
+                const oCanvasControl = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas");
+                const canvas = oCanvasControl.getDomRef();
+                const imageData = canvas.toDataURL("image/png"); // base64 format
+                // You can now send this to backend or store it
+                console.log("Signature Base64:", imageData);
+
+                const oCanvasControl1 = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas1");
+                const canvas1 = oCanvasControl1.getDomRef();
+                const imageData1 = canvas1.toDataURL("image/png"); // base64 format
+                // You can now send this to backend or store it
+                console.log("Signature Base64:", imageData1);
+
+                this.oPaySignatureload.push({
+                    "TransactionId": this.getView().byId("tranNumber").getCount(),
+                    "Value": imageData.split("data:image/png;base64,")[1],
+                    "Mimetype": 'image/png',
+                    "SignType": "S"
+                })
+
+                this.oPaySignatureload.push({
+                    "TransactionId": this.getView().byId("tranNumber").getCount(),
+                    "Value": imageData1.split("data:image/png;base64,")[1],
+                    "Mimetype": 'image/png',
+                    "SignType": "C"
+                })
+
+
+                that._pAddRecordDialog.setBusy(true);
+                setTimeout(function () {
+                    that.onPressCancel(true);
+                }, 1000)
+            },
+            onOpenSignaturePad: function () {
+                if (!this._pAddRecordDialog) {
+                    const oContent = sap.ui.xmlfragment(
+                        "SignaturePad",
+                        "com.eros.advancepayment.fragment.SignaturePads",
+                        this
+                    );
+
+                    this._pAddRecordDialog = new sap.m.Dialog({
+                        title: "Signature Pad",
+                        content: [oContent],
+                        stretch: true,
+                        afterOpen: this._initializeCanvas.bind(this),
+
+                    });
+
+                    this.getView().addDependent(this._pAddRecordDialog);
+                }
+                var oPrintBox = sap.ui.core.Fragment.byId("SignaturePad", "printBox");
+                oPrintBox.setVisible(false);
+                this._pAddRecordDialog.open();
+            },
 
             
         });

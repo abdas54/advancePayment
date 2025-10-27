@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/Control", "com/eros/salesprocess/control/library"], function(Control, library) {
+sap.ui.define(["sap/ui/core/Control", "com/eros/advancepayment/control/library"], function(Control, library) {
 	"use strict";
 
 	/**
