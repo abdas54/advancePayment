@@ -1234,6 +1234,11 @@ sap.ui.define([
                         placeholder: "Enter Card Label",
                         width: "60%"
                     }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
+                   
+                     this._oSelectCardNumber = new sap.m.Input({
+                        placeholder: "Enter Card Number",
+                        width: "60%"
+                    }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom inputStyle");
 
                     this._oSelectCardApproval = new sap.m.Input({
                         placeholder: "Enter Approval Code",
@@ -1249,6 +1254,7 @@ sap.ui.define([
                     this._oDialogCardType.addContent(this._oSelectCardLabel);
                     this._oDialogCardType.addContent(this._oSelectCardApproval);
                     this._oDialogCardType.addContent(this._oSelectCardReciept);
+                    this._oDialogCardType.addContent(this._oSelectCardNumber);
                     this.getView().addDependent(this._oDialogCardType);
                 }
 
@@ -1257,6 +1263,7 @@ sap.ui.define([
                 this._oSelectCardLabel.setValue("");
                 this._oSelectCardApproval.setValue("");
                 this._oSelectCardReciept.setValue("");
+                this._oSelectCardNumber.setValue("");
 
                 this._oDialogCardType.open();
                 // sap.ui.getCore().byId("manCardAmount").setValue("");
@@ -1270,6 +1277,7 @@ sap.ui.define([
                 var sCardLabel = that._oSelectCardLabel.getValue();
                 var sCardApproval = that._oSelectCardApproval.getValue();
                 var sCardReciept = that._oSelectCardReciept.getValue();
+                var sCardNumber = that._oSelectCardNumber.getValue();
                 that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
                 that.paymentId = that.paymentId + 1;
 
@@ -1301,10 +1309,10 @@ sap.ui.define([
                     "Tid": "",
                     "Mid": "",
                     "CardType": "",
-                    "CardLabel": "",
-                    "CardNumber": "",
-                    "AuthorizationCode": "",
-                    "CardReceiptNo": "",
+                    "CardLabel": sCardLabel,
+                    "CardNumber": sCardNumber,
+                    "AuthorizationCode": sCardApproval,
+                    "CardReceiptNo": sCardReciept,
                     "PaymentType": "CARD",
                     "VoucherNumber": "",
                     "SourceId": "" //that.getView().byId("tranNumber").getCount().toString() + that.paymentEntSourceCounter.toString()
