@@ -983,6 +983,10 @@ sap.ui.define([
                         }
                     },
                     error: function (oError) {
+                        that.getView().byId("tabAmount").setText("");
+                        that.getView().byId("tabCustomer").setText("");
+                        that.getView().byId("customer").setCount("");
+                        that.getView().byId("tabRemarks").setText("");
                         sap.m.MessageBox.show(
                             JSON.parse(oError.responseText).error.message.value, {
                             icon: sap.m.MessageBox.Icon.Error,
