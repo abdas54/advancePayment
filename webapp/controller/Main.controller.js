@@ -516,6 +516,7 @@ sap.ui.define([
                             this._oDialogPayment = oFragment;
                             this.getView().getModel("ShowPaymentSection").setProperty("/selectedMode", "");
                             sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
+                            sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
                             this.getView().addDependent(this._oDialogPayment);
                             sap.ui.getCore().byId("cashSbmtBtn").setEnabled(true);
                             this._oDialogPayment.open();
@@ -1074,6 +1075,7 @@ sap.ui.define([
                 this.cashAmount = oEvent.getParameter("value");
                 var that = this;
                 var aFilters = [];
+                if (parseFloat(this.cashAmount) <= parseFloat(sap.ui.getCore().byId("totalSaleBalText").getText())) {
                 aFilters.push(new sap.ui.model.Filter("Store", sap.ui.model.FilterOperator.EQ, this.storeID));
                 this.oModel.read("/TerminalsSet", {
                     filters: aFilters,
@@ -1095,6 +1097,10 @@ sap.ui.define([
                         });
                     }
                 });
+                }
+                else {
+                    sap.m.MessageBox.error("Entered Amount is more than Sale Amount");
+                }
             },
             onPressTenderCard: function (oEvent) {
                 // var terminalID = oEvent.getParameter("srcControl").getAggregation("items")[0].getProperty("text")
@@ -1227,7 +1233,8 @@ sap.ui.define([
                     this._oAmountCardInput = new sap.m.Input({
                         placeholder: "Enter Amount",
                         type: "Number",
-                        width: "60%"
+                        width: "60%",
+                        change: this.validateEnterAmount.bind(this)
                     }).addStyleClass("sapUiSmallMarginBegin  sapUiSmallMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
 
                     this._oSelectCardLabel = new sap.m.Input({
@@ -1270,6 +1277,13 @@ sap.ui.define([
                 // sap.ui.getCore().byId("manCardNumber").setValue("");
                 // sap.ui.getCore().byId("manCardApproveCode").setValue("");
                 // sap.ui.getCore().byId("manCardReciept").setValue("");
+            },
+            validateEnterAmount: function (oEvent) {
+                if (parseFloat(oEvent.getSource().getValue()) > parseFloat(sap.ui.getCore().byId("totalSaleBalText").getText())) {
+                    sap.m.MessageToast.show("Entered Value is more than Sale Balance");
+                    oEvent.getSource().setValue("");
+                }
+
             },
             onSubmitCardType: function () {
                 var that = this;
@@ -1350,11 +1364,10 @@ sap.ui.define([
                 this._oSelectedReason = oSelectedItem; // Store the clicked item globally
                 this.nonGVPaymentMethod = oSelectedItem.PaymentMethod;
                 this.nonGVPaymentMethodName = oSelectedItem.PaymentMethodName;
-                // var oInput = new sap.m.Input({
-                //     placeholder: "Enter Amount",
-                //     type: "Number",
-                //     width:"60%"
-                // }).addStyleClass("sapUiSmallMarginBegin  sapUiSmallMarginTop sapUiSmallMarginBottom");
+                var bFlag = true;
+                if (oSelectedItem.Validate === "X") {
+                    bFlag = false;
+                }
                 this._oDialogNonGV = null;
                 if (!this._oDialogNonGV) {
                     this._oDialogNonGV = new sap.m.Dialog({
@@ -1374,7 +1387,8 @@ sap.ui.define([
                     this._oAmountInput = new sap.m.Input({
                         placeholder: "Enter Amount",
                         type: "Number",
-                        width: "60%"
+                        width: "60%",
+                        change: this.validateEnterAmount.bind(this)
                     }).addStyleClass("sapUiSmallMarginBegin  sapUiSmallMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
 
                     this._oVoucherNumber = new sap.m.TextArea({
@@ -1391,13 +1405,33 @@ sap.ui.define([
                 // Clear previous input
                 this._oAmountInput.setValue("");
                 this._oVoucherNumber.setValue("");
+                if (!bFlag) {
+                    this._oAmountInput.setEnabled(false);
+                    this._oDialogNonGV.getBeginButton().setText("Validate");
+
+                } else {
+                    this._oAmountInput.setEnabled(true);
+                    this._oDialogNonGV.getBeginButton().setEnabled(true);
+                    this._oDialogNonGV.getBeginButton().setText("Submit");
+
+                }
 
                 this._oDialogNonGV.open();
             },
-            onSubmitAmount: function () {
+         
+            onSubmitAmount: function (oEvent) {
                 var that = this;
                 var sAmount = that._oAmountInput.getValue();
                 var sVoucherNumber = that._oVoucherNumber.getValue();
+                if (oEvent.getSource().getText() === "Validate") {
+
+                    if (!sVoucherNumber) {
+                        sap.m.MessageToast.show("Please enter Voucher Number");
+                        return;
+                    }
+                    this.onValidateAdvReciept(oEvent, "N", sVoucherNumber);
+                }
+                else{
                 that.paymentId = that.paymentId + 1;
                 that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
 
@@ -1455,6 +1489,7 @@ sap.ui.define([
                     sap.m.MessageToast.show("Non EGV Payment Successful");
                 }
                 this._oDialogNonGV.close();
+            }
             },
             oPayloadPayments: function (arrPayment) {
                 if (arrPayment.length > 0) {
