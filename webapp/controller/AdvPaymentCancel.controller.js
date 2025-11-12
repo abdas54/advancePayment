@@ -3,13 +3,14 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
     "sap/ui/core/Fragment",
-    "sap/m/MessageBox"
+    "sap/m/MessageBox",
+    "com/eros/advancepayment/lib/epos-2.27.0"
 
 ],
     /**
      * @param {typeof sap.ui.core.mvc.Controller} Controller
      */
-    function (Controller, JSONModel, MessageToast, Fragment, MessageBox) {
+    function (Controller, JSONModel, MessageToast, Fragment, MessageBox,epson2) {
         "use strict";
         var that;
         return Controller.extend("com.eros.advancepayment.controller.AdvPaymentCancel", {
@@ -64,10 +65,14 @@ sap.ui.define([
             },
             validateLoggedInUser: function () {
                 var that = this;
+                that.printerIP = [];
                 this.oModel.read("/StoreIDSet", {
                     success: function (oData) {
                         that.storeID = oData.results[0] ? oData.results[0].Store : "";
                         that.plantID = oData.results[0] ? oData.results[0].Plant : "";
+                        that.printerIP.push(oData.results[0] ? oData.results[0].PrinterIp1 ? oData.results[0].PrinterIp1 : "" : "");
+                        that.printerIP.push(oData.results[0] ? oData.results[0].PrinterIp2 ? oData.results[0].PrinterIp2 : "" : "");
+                        that.printerIP.push(oData.results[0] ? oData.results[0].PrinterIp3 ? oData.results[0].PrinterIp3 : "" : "");
                         that.onPressPayments();
                     },
                     error: function (oError) {
@@ -727,6 +732,7 @@ sap.ui.define([
                         
                         MessageBox.success("Advance Payment Posted Successfully.", {
                             onClose: function (sAction) {
+                                //that.onOpenPrinterDialog();
                                 window.location.reload(true);
                             }
                         });
@@ -738,6 +744,341 @@ sap.ui.define([
                     }
                 });
 
+            },
+               onOpenPrinterDialog: function () {
+                var that = this;
+
+                // 1️⃣ Filter out blank IP addresses
+                var aValidIPs = (that.printerIP || []).filter(function (ip) {
+                    return ip && ip.trim() !== "";
+                });
+
+                if (aValidIPs.length === 0) {
+                    sap.m.MessageToast.show("No valid printer IPs found.");
+                    return;
+                }
+
+                // 2️⃣ Create JSON Model for GridList
+                var oIPModel = new sap.ui.model.json.JSONModel({
+                    IPs: aValidIPs.map(function (ip) {
+                        return { IP: ip };
+                    })
+                });
+                var oSignBox = sap.ui.core.Fragment.byId("SignaturePad", "signBox");
+                oSignBox.setVisible(false);
+                var ipBox = sap.ui.core.Fragment.byId("SignaturePad", "ipBox");
+                ipBox.setVisible(true);
+                this._pAddRecordDialog.setModel(oIPModel, "IPModel");
+
+            },
+            onPressIP: function (oEvent) {
+                var that = this;
+                var oItem = oEvent.getParameter("listItem") || oEvent.getSource();
+                var oVBox = oItem.getContent ? oItem.getContent()[0] : oItem.getAggregation("content")[0];
+                var aItems = oVBox.getItems ? oVBox.getItems() : oVBox.getAggregation("items");
+                this.printIP = aItems[0]?.getText();
+                var tranNumber = this.getView().byId("tranNumber").getCount().toString();
+                var sPath = "/PrintPDFSet(TransactionId='" + tranNumber + "',PDFType='A')";
+                this.oModel.read(sPath, {
+                    urlParameters: { "$expand": "ToPDFList" },
+                    success: async function (oData) {
+                        that.aPrintBase64 = oData.ToPDFList.results;
+                        var aResults = oData.ToPDFList.results;
+
+                        var oPrintBox = sap.ui.core.Fragment.byId("SignaturePad", "printBox");
+                        oPrintBox.setVisible(true);
+                        var oHtmlControl = sap.ui.core.Fragment.byId("SignaturePad", "pdfCanvas");
+                        var iframeContent = '<div id="pdf-viewport"></div>';
+                        oHtmlControl.setContent(iframeContent);
+                        oHtmlControl.invalidate(); // force re-render
+                        sap.ui.getCore().applyChanges(); // immediately render changes
+                        oHtmlControl.setVisible(true);
+                        const pdfContainer = document.getElementById("pdf-viewport");
+                        console.log("PDF container:", pdfContainer);
+                        that.aCanvas = [];
+
+
+                        if (aResults && aResults.length > 0) {
+                            // Sort by sequence if needed
+                            aResults.sort((a, b) => parseInt(a.SequenceId) - parseInt(b.SequenceId));
+
+                            for (const oRow of aResults) {
+                                await that.showPDF(oRow.Value);
+                            }
+
+
+                        } else {
+                            sap.m.MessageToast.show("No PDF data available.");
+                        }
+
+
+
+                    },
+                    error: function () {
+                        sap.m.MessageToast.show("Error fetching PDF.");
+                    }
+                });
+
+
+            },
+            showPDF: async function (base64Content) {
+
+
+                var byteCharacters = atob(base64Content);
+                var byteNumbers = new Array(byteCharacters.length);
+                for (var i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                var byteArray = new Uint8Array(byteNumbers);
+                var blob = new Blob([byteArray], {
+                    type: 'application/pdf'
+                });
+                var pdfUrl = URL.createObjectURL(blob);
+                try {
+                    const canvas = await this.loadPdfToCanvas(pdfUrl);
+                    this.canvasp = canvas;
+                    that.aCanvas.push(canvas);
+
+                } catch (err) {
+                    MessageBox.error("Error rendering or printing PDF: " + err.message);
+                }
+
+                var oPrintBox = sap.ui.core.Fragment.byId("SignaturePad", "printBox");
+                oPrintBox.setVisible(true);
+
+                var oSignBox = sap.ui.core.Fragment.byId("SignaturePad", "signBox");
+                oSignBox.setVisible(false);
+
+                var ipBox = sap.ui.core.Fragment.byId("SignaturePad", "ipBox");
+                ipBox.setVisible(false);
+
+            },
+              onPressPrint: function () {
+                this.sendToEpsonPrinter(that.aCanvas, this.printIP);
+            },
+               sendToEpsonPrinter: async function (canvasesArray, printerIp, count) {
+                var ePosDev = new epson.ePOSDevice();
+                var that = this;
+                //var ip = this.getView().byId("ipaddr").getValue();
+                // var wdth = this.getView().byId("wdth").getValue();
+                // var ht = this.getView().byId("heht").getValue();
+                //printerIp = this.printerIP;
+
+                for (let a = 0; a < canvasesArray.length; a++) {
+                    that.counter = a;
+                    const canvases = canvasesArray[a];
+                    await new Promise((resolve, reject) => {
+                        ePosDev.connect(printerIp, 8043, function (resultConnect) {
+                            if (resultConnect === "OK" || resultConnect == "SSL_CONNECT_OK") {
+                                ePosDev.createDevice("local_printer", ePosDev.DEVICE_TYPE_PRINTER,
+                                    { crypto: false, buffer: false },
+                                    async function (deviceObj, resultCreate) {
+                                        if (resultCreate === "OK") {
+                                            var printer = deviceObj;
+
+
+
+                                            printer.brightness = 1.0;
+                                            printer.halftone = printer.HALFTONE_ERROR_DIFFUSION;
+                                            for (const canvas of canvases) {
+                                                printer.addImage(canvas.getContext("2d", { willReadFrequently: true }), 0, 0, canvas.width, canvas.height, printer.COLOR_1, printer.MODE_MONO);
+                                            }
+
+
+                                            printer.addCut(printer.CUT_FEED);
+                                            await printer.send();
+                                            resolve();
+                                            if (canvasesArray.length === that.counter + 1) {
+                                                window.location.reload(true);
+                                            }
+                                            // printer.send(function (resultSend) {
+                                            //     if (resultSend === "OK") {
+                                            //         sap.m.MessageToast.show("Printed successfully!");
+                                            //     } else {
+                                            //         sap.m.MessageBox.error("Print failed: " + resultSend);
+                                            //     }
+                                            // });
+                                        } else {
+                                            sap.m.MessageBox.error("Failed to create device: " + resultCreate);
+                                            reject(resultCreate);
+                                        }
+                                    }
+                                );
+                            } else {
+                                //sap.m.MessageBox.error("Connection failed: " + resultConnect);
+                                sap.m.MessageBox.error("Connection failed: " + resultConnect, {
+                                    title: "Error",
+                                    actions: [sap.m.MessageBox.Action.OK],
+                                    onClose: function (oAction) {
+                                        if (oAction === sap.m.MessageBox.Action.OK) {
+                                            window.location.reload(true);
+                                        }
+                                    }.bind(this)
+                                });
+                            }
+                        });
+                    });
+                }
+
+            },
+              loadPdfToCanvas: async function (pdfUrl) {
+                await this.ensurePdfJsLib();
+
+                try {
+                    const pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+                    const printerWidth = 576;
+                    const canvasArray = [];
+
+                    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                        const page = await pdfDoc.getPage(pageNum);
+                        const scale = printerWidth / page.getViewport({ scale: 1 }).width;
+                        const viewport = page.getViewport({ scale });
+                        const pdfContainer = document.getElementById("pdf-viewport");
+                        //const canvas = document.createElement("canvas");
+                       const { canvas, context } = this.createHiDPICanvas(viewport.width,viewport.height);
+                        // pdfContainer.appendChild(canvas);
+                        const width = viewport.width;
+                        const height = viewport.height;
+                        canvas.height = height;
+                        canvas.width = width;
+                        canvas.style.width = Math.floor(width) + "px";
+                        canvas.style.height = Math.floor(height) + "px";
+                        canvas.setAttribute("willReadFrequently", "true");
+                        // canvas.width = viewport.width;
+                        // canvas.height = viewport.height;
+                       // const context = canvas.getContext("2d", { willReadFrequently: true });
+                        context.clearRect(0, 0, width, height);
+
+                        await page.render({
+                            canvasContext: context,
+                            viewport
+                        }).promise;
+
+                        let top = 0;
+                        let bottom = height;
+                        let left = 0;
+                        let right = width;
+
+                        while (top < bottom) {
+                            const imageData = context.getImageData(
+                                left,
+                                top,
+                                right - left,
+                                1
+                            ).data;
+                            if (!this.isSingleColor(imageData)) {
+                                break;
+                            }
+                            top++;
+                        }
+                        while (top < bottom) {
+                            const imageData = context.getImageData(
+                                left,
+                                bottom,
+                                right - left,
+                                1
+                            ).data;
+                            if (!this.isSingleColor(imageData)) {
+                                break;
+                            }
+                            bottom--;
+                        }
+                        while (left < right) {
+                            const imageData = context.getImageData(
+                                left,
+                                top,
+                                1,
+                                bottom - top
+                            ).data;
+                            if (!this.isSingleColor(imageData)) {
+                                break;
+                            }
+                            left++;
+                        }
+                        while (left < right) {
+                            const imageData = context.getImageData(
+                                right,
+                                top,
+                                1,
+                                bottom - top
+                            ).data;
+                            if (!this.isSingleColor(imageData)) {
+                                break;
+                            }
+                            right--;
+                        }
+
+                        context.clearRect(0, 0, width, height);
+                        const adjustedScale = printerWidth / (right - left);
+                        const adjustedWidth = (right - left) * adjustedScale;
+                        const adjustedHeight = (bottom - top) * adjustedScale;
+
+                        canvas.height = adjustedHeight + 10;
+                        canvas.width = adjustedWidth;
+                        canvas.style.width = `${adjustedWidth}px`;
+                        canvas.style.height = `${adjustedHeight}px`;
+
+                        pdfContainer.appendChild(canvas);
+                        await page.render({
+                            canvasContext: context,
+                            viewport,
+                        }).promise;
+
+                        // Store each rendered canvas
+                        canvasArray.push(canvas);
+                    }
+
+                    // Now return array of canvases or send to printer
+                    return canvasArray;
+
+                } catch (error) {
+                    console.error("Error loading PDF:", error);
+                    MessageToast.show("Failed to load PDF: " + error.message);
+                }
+            },
+            isSingleColor: function (imageData) {
+                const stride = 4;
+                for (let offset = 0; offset < stride; offset++) {
+                    const first = imageData[offset];
+                    for (let i = offset; i < imageData.length; i += stride) {
+                        if (first !== imageData[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            },
+            getPixelRatio: function () {
+                var ctx = document.createElement("canvas").getContext("2d"),
+                    dpr = window.devicePixelRatio || 1,
+                    bsr =
+                        ctx.webkitBackingStorePixelRatio ||
+                        ctx.mozBackingStorePixelRatio ||
+                        ctx.msBackingStorePixelRatio ||
+                        ctx.oBackingStorePixelRatio ||
+                        ctx.backingStorePixelRatio ||
+                        1;
+
+                return dpr / bsr;
+            },
+
+            createHiDPICanvas: function (w, h, ratio) {
+                if (!ratio) {
+                    ratio = this.getPixelRatio();
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = w * ratio;
+                canvas.height = h * ratio;
+                canvas.style.width = w + "px";
+                canvas.style.height = h + "px";
+                const context = canvas.getContext("2d", {
+                    willReadFrequently: true,
+                });
+                context.setTransform(ratio, 0, 0, ratio, 0, 0);
+                context.imageSmoothingEnabled = true;
+                context.imageSmoothingQuality = "high";
+                context.font = "64px NotoSansArabic";
+                return { canvas, context };
             },
             onRetrieveTerminal: function (oEvent) {
                 this.cashAmount = oEvent.getParameter("value");
@@ -946,7 +1287,8 @@ sap.ui.define([
                         that.getView().byId("tranNumber").setCount(oData.TransactionId);
                         MessageBox.success("Advance Payment Cancelled Successfully.", {
                             onClose: function (sAction) {
-                                window.location.reload(true);
+                                  that.onOpenPrinterDialog();
+                                //window.location.reload(true);
                             }
                         });
                     },
@@ -1291,8 +1633,10 @@ sap.ui.define([
                 const ctx = canvas.getContext("2d");
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             },
-            onSaveSignature: function () {
+            onSaveSignature: function (oEvent) {
                 var that = this;
+                oEvent.getSource().setEnabled(false);
+                that._pAddRecordDialog.setBusy(true);
                 this.oPaySignatureload = [];
                 const oCanvasControl = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas");
                 const canvas = oCanvasControl.getDomRef();
@@ -1339,6 +1683,24 @@ sap.ui.define([
                         content: [oContent],
                         stretch: true,
                         afterOpen: this._initializeCanvas.bind(this),
+                        customHeader: new sap.m.Toolbar({
+                            content: [
+                                new sap.m.Title({ text: "Signature Pad" }),
+                                new sap.m.ToolbarSpacer(),
+                                new sap.m.Button({
+                                    icon: "sap-icon://decline",
+                                    tooltip: "Close",
+                                    press: function () {
+                                        if(this.aCanvas && this.aCanvas.length > 0){
+                                        window.location.reload(true);
+                                        }
+                                        else{
+                                          this._pAddRecordDialog.close();
+                                        }
+                                    }.bind(this)
+                                })
+                            ]
+                        })
 
                     });
 
@@ -1347,6 +1709,22 @@ sap.ui.define([
                 var oPrintBox = sap.ui.core.Fragment.byId("SignaturePad", "printBox");
                 oPrintBox.setVisible(false);
                 this._pAddRecordDialog.open();
+            },
+            ensurePdfJsLib: async function () {
+                if (!window.pdfjsLib) {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement("script");
+                        script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js";
+                        script.onload = () => {
+                            window.pdfjsLib = window['pdfjs-dist/build/pdf'];
+                            window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+                            resolve();
+                        };
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
             },
 
             

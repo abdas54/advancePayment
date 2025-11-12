@@ -65,10 +65,14 @@ sap.ui.define([
             },
             validateLoggedInUser: function () {
                 var that = this;
+                that.printerIP = [];
                 this.oModel.read("/StoreIDSet", {
                     success: function (oData) {
                         that.storeID = oData.results[0] ? oData.results[0].Store : "";
                         that.plantID = oData.results[0] ? oData.results[0].Plant : "";
+                        that.printerIP.push(oData.results[0] ? oData.results[0].PrinterIp1 ? oData.results[0].PrinterIp1 : "" : "");
+                        that.printerIP.push(oData.results[0] ? oData.results[0].PrinterIp2 ? oData.results[0].PrinterIp2 : "" : "");
+                        that.printerIP.push(oData.results[0] ? oData.results[0].PrinterIp3 ? oData.results[0].PrinterIp3 : "" : "");
                         that.onPressPayments();
                     },
                     error: function (oError) {
@@ -523,6 +527,8 @@ sap.ui.define([
                             this._oDialogCashier.close();
                         }.bind(this));
                     } else {
+                         sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
+                        sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
                         this.getView().getModel("ShowPaymentSection").setProperty("/selectedMode", "");
                         sap.ui.getCore().byId("cashSbmtBtn").setEnabled(true);
                         this._oDialogPayment.open();
@@ -589,7 +595,7 @@ sap.ui.define([
                 this._oDialogPayment.close();
             },
             onCashSubmit: function (oEvent) {
-                var that= this;
+                var that = this;
                 var event = oEvent.getSource();
                 var cashAmount = sap.ui.getCore().byId("cash").getValue();
                 this.paymentEntSourceCounter = this.paymentEntSourceCounter + 1;
@@ -758,12 +764,13 @@ sap.ui.define([
                         if (that._oDialogPayment) {
                             that._oDialogPayment.setBusy(false);
                         }
-                   
+
                         MessageBox.success("Advance Payment Posted Successfully.", {
                             onClose: function (sAction) {
-                                 for (var count = 1; count <= 2; count++) {
-                                                that.getPDFBase64(count);
-                                            }
+                                 that.onOpenPrinterDialog();
+                                // for (var count = 1; count <= 2; count++) {
+                                //     that.getPDFBase64(count);
+                                // }
                             }
                         });
                     },
@@ -787,7 +794,115 @@ sap.ui.define([
                 });
 
             },
-                          getPDFBase64: function (count) {
+               onOpenPrinterDialog: function () {
+                var that = this;
+
+                // 1️⃣ Filter out blank IP addresses
+                var aValidIPs = (that.printerIP || []).filter(function (ip) {
+                    return ip && ip.trim() !== "";
+                });
+
+                if (aValidIPs.length === 0) {
+                    sap.m.MessageToast.show("No valid printer IPs found.");
+                    return;
+                }
+
+                // 2️⃣ Create JSON Model for GridList
+                var oIPModel = new sap.ui.model.json.JSONModel({
+                    IPs: aValidIPs.map(function (ip) {
+                        return { IP: ip };
+                    })
+                });
+                var oSignBox = sap.ui.core.Fragment.byId("SignaturePad", "signBox");
+                oSignBox.setVisible(false);
+                var ipBox = sap.ui.core.Fragment.byId("SignaturePad", "ipBox");
+                ipBox.setVisible(true);
+                this._pAddRecordDialog.setModel(oIPModel, "IPModel");
+
+            },
+            onPressIP: function (oEvent) {
+                var that = this;
+                var oItem = oEvent.getParameter("listItem") || oEvent.getSource();
+                var oVBox = oItem.getContent ? oItem.getContent()[0] : oItem.getAggregation("content")[0];
+                var aItems = oVBox.getItems ? oVBox.getItems() : oVBox.getAggregation("items");
+                this.printIP = aItems[0]?.getText();
+                var tranNumber = this.getView().byId("tranNumber").getCount().toString();
+                var sPath = "/PrintPDFSet(TransactionId='" + tranNumber + "',PDFType='A')";
+                this.oModel.read(sPath, {
+                    urlParameters: { "$expand": "ToPDFList" },
+                    success: async function (oData) {
+                        that.aPrintBase64 = oData.ToPDFList.results;
+                        var aResults = oData.ToPDFList.results;
+
+                        var oPrintBox = sap.ui.core.Fragment.byId("SignaturePad", "printBox");
+                        oPrintBox.setVisible(true);
+                        var oHtmlControl = sap.ui.core.Fragment.byId("SignaturePad", "pdfCanvas");
+                        var iframeContent = '<div id="pdf-viewport"></div>';
+                        oHtmlControl.setContent(iframeContent);
+                        oHtmlControl.invalidate(); // force re-render
+                        sap.ui.getCore().applyChanges(); // immediately render changes
+                        oHtmlControl.setVisible(true);
+                        const pdfContainer = document.getElementById("pdf-viewport");
+                        console.log("PDF container:", pdfContainer);
+                        that.aCanvas = [];
+
+
+                        if (aResults && aResults.length > 0) {
+                            // Sort by sequence if needed
+                            aResults.sort((a, b) => parseInt(a.SequenceId) - parseInt(b.SequenceId));
+
+                            for (const oRow of aResults) {
+                                await that.showPDF(oRow.Value);
+                            }
+
+
+                        } else {
+                            sap.m.MessageToast.show("No PDF data available.");
+                        }
+
+
+
+                    },
+                    error: function () {
+                        sap.m.MessageToast.show("Error fetching PDF.");
+                    }
+                });
+
+
+            },
+            showPDF: async function (base64Content) {
+
+
+                var byteCharacters = atob(base64Content);
+                var byteNumbers = new Array(byteCharacters.length);
+                for (var i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                var byteArray = new Uint8Array(byteNumbers);
+                var blob = new Blob([byteArray], {
+                    type: 'application/pdf'
+                });
+                var pdfUrl = URL.createObjectURL(blob);
+                try {
+                    const canvas = await this.loadPdfToCanvas(pdfUrl);
+                    this.canvasp = canvas;
+                    that.aCanvas.push(canvas);
+
+                } catch (err) {
+                    MessageBox.error("Error rendering or printing PDF: " + err.message);
+                }
+
+                var oPrintBox = sap.ui.core.Fragment.byId("SignaturePad", "printBox");
+                oPrintBox.setVisible(true);
+
+                var oSignBox = sap.ui.core.Fragment.byId("SignaturePad", "signBox");
+                oSignBox.setVisible(false);
+
+                var ipBox = sap.ui.core.Fragment.byId("SignaturePad", "ipBox");
+                ipBox.setVisible(false);
+
+            },
+            getPDFBase64: function (count) {
                 var that = this;
                 var tranNumber = this.getView().byId("tranNumber").getCount().toString();
                 var sUrl = "/sap/opu/odata/SAP/ZEROS_RETAIL_PROJECT_SRV/TransactionPDFSet(TransactionId='" + tranNumber + "',TransactionCopy='" + count + "')/$value";
@@ -863,8 +978,8 @@ sap.ui.define([
                 }
 
             },
-            onPressPrint: function () {
-                this.sendToEpsonPrinter(this.canvasp, this.printerIP);
+             onPressPrint: function () {
+                this.sendToEpsonPrinter(that.aCanvas, this.printIP);
             },
             isSingleColor: function (imageData) {
                 const stride = 4;
@@ -878,7 +993,7 @@ sap.ui.define([
                 }
                 return true;
             },
-            loadPdfToCanvas: async function (pdfUrl) {
+             loadPdfToCanvas: async function (pdfUrl) {
                 await this.ensurePdfJsLib();
 
                 try {
@@ -891,7 +1006,8 @@ sap.ui.define([
                         const scale = printerWidth / page.getViewport({ scale: 1 }).width;
                         const viewport = page.getViewport({ scale });
                         const pdfContainer = document.getElementById("pdf-viewport");
-                        const canvas = document.createElement("canvas");
+                        //const canvas = document.createElement("canvas");
+                       const { canvas, context } = this.createHiDPICanvas(viewport.width,viewport.height);
                         // pdfContainer.appendChild(canvas);
                         const width = viewport.width;
                         const height = viewport.height;
@@ -902,7 +1018,7 @@ sap.ui.define([
                         canvas.setAttribute("willReadFrequently", "true");
                         // canvas.width = viewport.width;
                         // canvas.height = viewport.height;
-                        const context = canvas.getContext("2d", { willReadFrequently: true });
+                       // const context = canvas.getContext("2d", { willReadFrequently: true });
                         context.clearRect(0, 0, width, height);
 
                         await page.render({
@@ -992,6 +1108,38 @@ sap.ui.define([
                     MessageToast.show("Failed to load PDF: " + error.message);
                 }
             },
+            getPixelRatio: function () {
+                var ctx = document.createElement("canvas").getContext("2d"),
+                    dpr = window.devicePixelRatio || 1,
+                    bsr =
+                        ctx.webkitBackingStorePixelRatio ||
+                        ctx.mozBackingStorePixelRatio ||
+                        ctx.msBackingStorePixelRatio ||
+                        ctx.oBackingStorePixelRatio ||
+                        ctx.backingStorePixelRatio ||
+                        1;
+
+                return dpr / bsr;
+            },
+
+            createHiDPICanvas: function (w, h, ratio) {
+                if (!ratio) {
+                    ratio = this.getPixelRatio();
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = w * ratio;
+                canvas.height = h * ratio;
+                canvas.style.width = w + "px";
+                canvas.style.height = h + "px";
+                const context = canvas.getContext("2d", {
+                    willReadFrequently: true,
+                });
+                context.setTransform(ratio, 0, 0, ratio, 0, 0);
+                context.imageSmoothingEnabled = true;
+                context.imageSmoothingQuality = "high";
+                context.font = "64px NotoSansArabic";
+                return { canvas, context };
+            },
             ensurePdfJsLib: async function () {
                 if (!window.pdfjsLib) {
                     await new Promise((resolve, reject) => {
@@ -1009,59 +1157,70 @@ sap.ui.define([
                 }
             },
 
-            sendToEpsonPrinter: function (canvases, printerIp, count) {
+              sendToEpsonPrinter: async function (canvasesArray, printerIp, count) {
                 var ePosDev = new epson.ePOSDevice();
+                var that = this;
                 //var ip = this.getView().byId("ipaddr").getValue();
                 // var wdth = this.getView().byId("wdth").getValue();
                 // var ht = this.getView().byId("heht").getValue();
+                //printerIp = this.printerIP;
 
-                ePosDev.connect(printerIp, 8043, function (resultConnect) {
-                    if (resultConnect === "OK" || resultConnect == "SSL_CONNECT_OK") {
-                        ePosDev.createDevice("local_printer", ePosDev.DEVICE_TYPE_PRINTER,
-                            { crypto: false, buffer: false },
-                            function (deviceObj, resultCreate) {
-                                if (resultCreate === "OK") {
-                                    var printer = deviceObj;
+                for (let a = 0; a < canvasesArray.length; a++) {
+                    that.counter = a;
+                    const canvases = canvasesArray[a];
+                    await new Promise((resolve, reject) => {
+                        ePosDev.connect(printerIp, 8043, function (resultConnect) {
+                            if (resultConnect === "OK" || resultConnect == "SSL_CONNECT_OK") {
+                                ePosDev.createDevice("local_printer", ePosDev.DEVICE_TYPE_PRINTER,
+                                    { crypto: false, buffer: false },
+                                    async function (deviceObj, resultCreate) {
+                                        if (resultCreate === "OK") {
+                                            var printer = deviceObj;
 
 
 
-                                    printer.brightness = 1.0;
-                                    printer.halftone = printer.HALFTONE_ERROR_DIFFUSION;
-                                    for (const canvas of canvases) {
-                                        printer.addImage(canvas.getContext("2d", { willReadFrequently: true }), 0, 0, canvas.width, canvas.height, printer.COLOR_1, printer.MODE_MONO);
+                                            printer.brightness = 1.0;
+                                            printer.halftone = printer.HALFTONE_ERROR_DIFFUSION;
+                                            for (const canvas of canvases) {
+                                                printer.addImage(canvas.getContext("2d", { willReadFrequently: true }), 0, 0, canvas.width, canvas.height, printer.COLOR_1, printer.MODE_MONO);
+                                            }
+
+
+                                            printer.addCut(printer.CUT_FEED);
+                                            await printer.send();
+                                            resolve();
+                                            if (canvasesArray.length === that.counter + 1) {
+                                                window.location.reload(true);
+                                            }
+                                            // printer.send(function (resultSend) {
+                                            //     if (resultSend === "OK") {
+                                            //         sap.m.MessageToast.show("Printed successfully!");
+                                            //     } else {
+                                            //         sap.m.MessageBox.error("Print failed: " + resultSend);
+                                            //     }
+                                            // });
+                                        } else {
+                                            sap.m.MessageBox.error("Failed to create device: " + resultCreate);
+                                            reject(resultCreate);
+                                        }
                                     }
-
-
-                                    printer.addCut(printer.CUT_FEED);
-                                    printer.send();
-                                    if (count == 2) {
-                                        window.location.reload(true);
-                                    }
-                                    // printer.send(function (resultSend) {
-                                    //     if (resultSend === "OK") {
-                                    //         sap.m.MessageToast.show("Printed successfully!");
-                                    //     } else {
-                                    //         sap.m.MessageBox.error("Print failed: " + resultSend);
-                                    //     }
-                                    // });
-                                } else {
-                                    sap.m.MessageBox.error("Failed to create device: " + resultCreate);
-                                }
+                                );
+                            } else {
+                                //sap.m.MessageBox.error("Connection failed: " + resultConnect);
+                                sap.m.MessageBox.error("Connection failed: " + resultConnect, {
+                                    title: "Error",
+                                    actions: [sap.m.MessageBox.Action.OK],
+                                    onClose: function (oAction) {
+                                        if (oAction === sap.m.MessageBox.Action.OK) {
+                                            window.location.reload(true);
+                                        }
+                                    }.bind(this)
+                                });
                             }
-                        );
-                    } else {
-                        //sap.m.MessageBox.error("Connection failed: " + resultConnect);
-                        sap.m.MessageBox.error("Connection failed: " + resultConnect, {
-                            title: "Error",
-                            actions: [sap.m.MessageBox.Action.OK],
-                            onClose: function (oAction) {
-                                if (oAction === sap.m.MessageBox.Action.OK) {
-                                    window.location.reload(true);
-                                }
-                            }.bind(this)
                         });
-                    }
-                });
+                    });
+                }
+
             },
             onClear: function () {
                 //sap.ui.core.Fragment.byId(this.getView().getId(), "idSignaturePad").clear();
@@ -1076,27 +1235,27 @@ sap.ui.define([
                 var that = this;
                 var aFilters = [];
                 if (parseFloat(this.cashAmount) <= parseFloat(sap.ui.getCore().byId("totalSaleBalText").getText())) {
-                aFilters.push(new sap.ui.model.Filter("Store", sap.ui.model.FilterOperator.EQ, this.storeID));
-                this.oModel.read("/TerminalsSet", {
-                    filters: aFilters,
-                    success: function (oData) {
-                        that.getView().getModel("ShowPaymentSection").setProperty("/Terminal", []);
-                        that.getView().getModel("ShowPaymentSection").setProperty("/Terminal", oData.results);
+                    aFilters.push(new sap.ui.model.Filter("Store", sap.ui.model.FilterOperator.EQ, this.storeID));
+                    this.oModel.read("/TerminalsSet", {
+                        filters: aFilters,
+                        success: function (oData) {
+                            that.getView().getModel("ShowPaymentSection").setProperty("/Terminal", []);
+                            that.getView().getModel("ShowPaymentSection").setProperty("/Terminal", oData.results);
 
-                    },
-                    error: function (oError) {
-                        sap.m.MessageBox.show(JSON.parse(oError.responseText).error.message.value, {
-                            icon: sap.m.MessageBox.Icon.Error,
-                            title: "Error",
-                            actions: [MessageBox.Action.OK],
-                            onClose: function (oAction) {
-                                if (oAction === MessageBox.Action.OK) {
+                        },
+                        error: function (oError) {
+                            sap.m.MessageBox.show(JSON.parse(oError.responseText).error.message.value, {
+                                icon: sap.m.MessageBox.Icon.Error,
+                                title: "Error",
+                                actions: [MessageBox.Action.OK],
+                                onClose: function (oAction) {
+                                    if (oAction === MessageBox.Action.OK) {
 
+                                    }
                                 }
-                            }
-                        });
-                    }
-                });
+                            });
+                        }
+                    });
                 }
                 else {
                     sap.m.MessageBox.error("Entered Amount is more than Sale Amount");
@@ -1241,8 +1400,8 @@ sap.ui.define([
                         placeholder: "Enter Card Label",
                         width: "60%"
                     }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom customInputHeight inputStyle");
-                   
-                     this._oSelectCardNumber = new sap.m.Input({
+
+                    this._oSelectCardNumber = new sap.m.Input({
                         placeholder: "Enter Card Number",
                         width: "60%"
                     }).addStyleClass("sapUiSmallMarginBegin  sapUiTinyMarginTop sapUiSmallMarginBottom inputStyle");
@@ -1418,7 +1577,7 @@ sap.ui.define([
 
                 this._oDialogNonGV.open();
             },
-         
+
             onSubmitAmount: function (oEvent) {
                 var that = this;
                 var sAmount = that._oAmountInput.getValue();
@@ -1431,65 +1590,65 @@ sap.ui.define([
                     }
                     this.onValidateAdvReciept(oEvent, "N", sVoucherNumber);
                 }
-                else{
-                that.paymentId = that.paymentId + 1;
-                that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
-
-                if (!sAmount) {
-                    sap.m.MessageToast.show("Please enter an amount");
-                    return;
-                }
-                if (!sVoucherNumber) {
-                    sap.m.MessageToast.show("Please enter Voucher Number");
-                    return;
-                }
-
-                that.aPaymentEntries.push({
-                    "TransactionId": that.getView().byId("tranNumber").getCount().toString(),
-                    "PaymentId": that.paymentId.toString(),
-                    "PaymentDate": new Date(),
-                    "Amount": sAmount.toString(),
-                    "Currency": "AED",
-                    "PaymentMethod": that.nonGVPaymentMethod,
-                    "PaymentMethodName": that.nonGVPaymentMethodName,
-                    "Tid": "",
-                    "Mid": "",
-                    "CardType": "",
-                    "CardLabel": "",
-                    "CardNumber": "",
-                    "AuthorizationCode": "",
-                    "CardReceiptNo": "",
-                    "PaymentType": "NEGV",
-                    "VoucherNumber": sVoucherNumber,
-                    "SourceId": "" //that.getView().byId("tranNumber").getCount().toString() + that.paymentEntSourceCounter.toString()
-
-
-                });
-
-                var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
-                var paidAmount = 0;
-                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
-
-                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
-
-                }
-                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
-                if (balanceAmount <= 0) {
-                    sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
-                    sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(true);
-                    sap.m.MessageToast.show("Non EGV Payment Successful");
-                    that.onOpenSignaturePad();
-                    //that.onPressPaymentTest();
-                }
                 else {
-                    sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
-                    sap.ui.getCore().byId("cash").setValue("");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(false);
-                    sap.m.MessageToast.show("Non EGV Payment Successful");
+                    that.paymentId = that.paymentId + 1;
+                    that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
+
+                    if (!sAmount) {
+                        sap.m.MessageToast.show("Please enter an amount");
+                        return;
+                    }
+                    if (!sVoucherNumber) {
+                        sap.m.MessageToast.show("Please enter Voucher Number");
+                        return;
+                    }
+
+                    that.aPaymentEntries.push({
+                        "TransactionId": that.getView().byId("tranNumber").getCount().toString(),
+                        "PaymentId": that.paymentId.toString(),
+                        "PaymentDate": new Date(),
+                        "Amount": sAmount.toString(),
+                        "Currency": "AED",
+                        "PaymentMethod": that.nonGVPaymentMethod,
+                        "PaymentMethodName": that.nonGVPaymentMethodName,
+                        "Tid": "",
+                        "Mid": "",
+                        "CardType": "",
+                        "CardLabel": "",
+                        "CardNumber": "",
+                        "AuthorizationCode": "",
+                        "CardReceiptNo": "",
+                        "PaymentType": "NEGV",
+                        "VoucherNumber": sVoucherNumber,
+                        "SourceId": "" //that.getView().byId("tranNumber").getCount().toString() + that.paymentEntSourceCounter.toString()
+
+
+                    });
+
+                    var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
+                    var paidAmount = 0;
+                    for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
+
+                        paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
+
+                    }
+                    var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
+                    if (balanceAmount <= 0) {
+                        sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
+                        sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
+                        sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                        sap.m.MessageToast.show("Non EGV Payment Successful");
+                        that.onOpenSignaturePad();
+                        //that.onPressPaymentTest();
+                    }
+                    else {
+                        sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
+                        sap.ui.getCore().byId("cash").setValue("");
+                        sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                        sap.m.MessageToast.show("Non EGV Payment Successful");
+                    }
+                    this._oDialogNonGV.close();
                 }
-                this._oDialogNonGV.close();
-            }
             },
             oPayloadPayments: function (arrPayment) {
                 if (arrPayment.length > 0) {
@@ -1537,7 +1696,11 @@ sap.ui.define([
             onValidateAdvReciept: function (oEvent, mode, reciept) {
                 var that = this;
                 var oModel = new JSONModel();
-                this.oModel.read("/RedeemTransactionSet(Transaction='" + reciept + "',RedemptionType='" + mode + "')", {
+                var redemMethod = '';
+                if (mode === "N") {
+                    redemMethod = this.nonGVPaymentMethod;
+                }
+                this.oModel.read("/RedeemTransactionSet(Transaction='" + reciept + "',RedemptionType='" + mode + "',RedemptionMethod='" + redemMethod + "')", {
                     success: function (oData) {
 
 
@@ -1546,6 +1709,25 @@ sap.ui.define([
                             oModel.setData(oData);
                             that.getView().setModel(oModel, "GiftVoucher");
                             sap.ui.getCore().byId("gvPaymentList").setVisible(true);
+
+                        }
+                        else if (mode === "N") {
+                            oModel.setData({});
+                            oModel.setData(oData);
+                            that.getView().setModel(oModel, "NEGVModel");
+                            if (!that._oNEGVDialog) {
+                                Fragment.load({
+                                    id: that.getView().getId(),
+                                    name: "com.eros.advancepayment.fragment.negvdetails",
+                                    controller: that
+                                }).then(function (oDialog) {
+                                    that._oNEGVDialog = oDialog;
+                                    that.getView().addDependent(that._oNEGVDialog);
+                                    that._oNEGVDialog.open();
+                                }.bind(that));
+                            } else {
+                                that._oNEGVDialog.open();
+                            }
 
                         }
 
@@ -1565,6 +1747,34 @@ sap.ui.define([
 
                             }
                         });
+                    }
+                });
+            },
+            onCloseNEGVVoucherDialog: function () {
+                if (this._oNEGVDialog) {
+                    this._oNEGVDialog.close();
+                }
+            },
+            onNegvRedeemGVPayment: function (oEvent) {
+                var that = this;
+                that.paymentId = that.paymentId + 1;
+                var paidAmount = 0;
+                for (var count1 = 0; count1 < this.aPaymentEntries.length; count1++) {
+
+                    paidAmount = parseFloat(parseFloat(this.aPaymentEntries[count1].Amount) + parseFloat(paidAmount)).toFixed(2);
+
+                }
+                var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
+                var balanceAmount = parseFloat(parseFloat(saleAmount).toFixed(2) - parseFloat(paidAmount).toFixed(2)).toFixed(2);
+                MessageBox.confirm("Are you sure you want to redeem the NEGV Gift Voucher ?", {
+                    icon: MessageBox.Icon.Confirmation,
+                    title: "Confirmation",
+                    actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                    emphasizedAction: MessageBox.Action.YES,
+                    onClose: function (oAction) {
+                        if (oAction == "YES") {
+                            that.redeemVoucher(that.paymentId, that.nonGVPaymentMethod, that.nonGVPaymentMethodName, "NEGV", balanceAmount, "NEGVModel");
+                        }
                     }
                 });
             },
@@ -1604,6 +1814,10 @@ sap.ui.define([
                 else {
                     balanceAmt = balanceAmount;
                 }
+                var redemMethod = '';
+                if (paymentType1 === "NEGV") {
+                    redemMethod = this.nonGVPaymentMethod;
+                }
                 var oPayload = {
                     "Transaction": itemData.Transaction,
                     "RedemptionType": itemData.RedemptionType,
@@ -1611,7 +1825,8 @@ sap.ui.define([
                     "Currency": itemData.Currency,
                     "RedeemedAmount": itemData.RedeemedAmount,
                     "BalanceAmount": itemData.BalanceAmount,
-                    "TransactionAmount": itemData.TransactionAmount
+                    "TransactionAmount": itemData.TransactionAmount,
+                    "RedemptionMethod": redemMethod
 
 
                 }
@@ -1656,6 +1871,16 @@ sap.ui.define([
                         if (paymentType1 === "ADVANCE PAYMENT") {
                             that.updateBalanceAmount("Advance Reciept", "AdvancePayment");
                         }
+                        if (paymentType1 === "NEGV") {
+                            that.updateBalanceAmount("NEGV Gift Voucher", "NEGVModel");
+                        }
+                        if (that._oNEGVDialog) {
+                    that._oNEGVDialog.close();
+                }
+                if(that._oDialogNonGV){
+                    that._oDialogNonGV.close();
+                }
+               
                     },
                     error: function (oError) {
                         this.paymentEntSourceCounter = this.paymentEntSourceCounter + 1;
@@ -2044,8 +2269,10 @@ sap.ui.define([
                 const ctx = canvas.getContext("2d");
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             },
-            onSaveSignature: function () {
+            onSaveSignature: function (oEvent) {
                 var that = this;
+                oEvent.getSource().setEnabled(false);
+                that._pAddRecordDialog.setBusy(true);
                 this.oPaySignatureload = [];
                 const oCanvasControl = sap.ui.core.Fragment.byId("SignaturePad", "signatureCanvas");
                 const canvas = oCanvasControl.getDomRef();
@@ -2092,6 +2319,24 @@ sap.ui.define([
                         content: [oContent],
                         stretch: true,
                         afterOpen: this._initializeCanvas.bind(this),
+                        customHeader: new sap.m.Toolbar({
+                            content: [
+                                new sap.m.Title({ text: "Signature Pad" }),
+                                new sap.m.ToolbarSpacer(),
+                                new sap.m.Button({
+                                    icon: "sap-icon://decline",
+                                    tooltip: "Close",
+                                    press: function () {
+                                        if(this.aCanvas && this.aCanvas.length > 0){
+                                        window.location.reload(true);
+                                        }
+                                        else{
+                                          this._pAddRecordDialog.close();
+                                        }
+                                    }.bind(this)
+                                })
+                            ]
+                        })
 
                     });
 
@@ -2101,5 +2346,15 @@ sap.ui.define([
                 oPrintBox.setVisible(false);
                 this._pAddRecordDialog.open();
             },
+            onCommentLiveChange: function (oEvent) {
+                var oTextArea = oEvent.getSource();
+                var sValue = oTextArea.getValue();
+
+                if (sValue.length > 250) {
+                    // Trim to 250 characters
+                    oTextArea.setValue(sValue.substring(0, 250));
+                    sap.m.MessageToast.show("Maximum 250 characters allowed");
+                }
+            }
         });
     });

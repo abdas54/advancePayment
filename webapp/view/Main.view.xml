@@ -25,7 +25,7 @@
 			<Input id="saleAmount" class="sapUiSmallMarginBegin sapUiSmallMarginTop customInputHeight inputStyle" type="Text" change="onEnterAmount"  placeholder="Enter the Amount"
 				 valueLiveUpdate="true" liveChange="onLiveChange" >
 			</Input>
-			<TextArea id="comments" class="sapUiSmallMarginBegin" width="100%"  growing="true" placeholder="Enter Comments" />
+			<TextArea id="comments" class="sapUiSmallMarginBegin" width="100%" growing="true" liveChange="onCommentLiveChange" placeholder="Enter Comments" />
 			</VBox>
 			
 			
