@@ -853,7 +853,8 @@ sap.ui.define([
                 ipBox.setVisible(false);
 
             },
-              onPressPrint: function () {
+              onPressPrint: function (oEvent) {
+                oEvent.getSource().setEnabled(false);
                 this.sendToEpsonPrinter(that.aCanvas, this.printIP);
             },
                sendToEpsonPrinter: async function (canvasesArray, printerIp, count) {
