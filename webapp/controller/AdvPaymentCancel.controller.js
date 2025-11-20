@@ -642,7 +642,7 @@ sap.ui.define([
                     if (balanceAmount <= 0) {
                         sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
                         sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                        sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                        // sap.ui.getCore().byId("sbmtTrans").setVisible(true);
                         event.setEnabled(false);
                         sap.m.MessageToast.show("Cash Payment Successful");
                         that.onPressPaymentTest();
@@ -650,7 +650,7 @@ sap.ui.define([
                     else {
                         sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
                         sap.ui.getCore().byId("cash").setValue("");
-                        sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                        // sap.ui.getCore().byId("sbmtTrans").setVisible(false);
                         sap.m.MessageToast.show("Cash Payment Successful");
                     }
 
@@ -1174,13 +1174,13 @@ sap.ui.define([
                         if (balanceAmount <= 0) {
                             sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
                             sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                            sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                            // sap.ui.getCore().byId("sbmtTrans").setVisible(true);
                             that.onPressPaymentTest();
                         }
                         else {
                             sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
                             sap.ui.getCore().byId("cash").setValue("");
-                            sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                            // sap.ui.getCore().byId("sbmtTrans").setVisible(false);
                         }
 
 
@@ -1319,13 +1319,15 @@ sap.ui.define([
                             that.getView().byId("saleAmountIcon").setCount(oData.results[0].SaleAmount);
                             that.getView().byId("tabAmount").setText(oData.results[0].SaleAmount);
                             that.getView().byId("tabCustomer").setText(oData.results[0].CustomerName);
-                             that.getView().byId("customer").setCount(oData.results[0].CustomerName);
+                            that.getView().byId("customer").setCount(oData.results[0].CustomerName);
                             that.getView().byId("tabRemarks").setText(oData.results[0].Remarks);
+                            that.getView(). byId("Cancel").setPressEnabled(true);
 
 
                         }
                     },
                     error: function (oError) {
+                        that.getView(). byId("Cancel").setPressEnabled(false);
                         that.getView().byId("tabAmount").setText("");
                         that.getView().byId("tabCustomer").setText("");
                         that.getView().byId("customer").setCount("");

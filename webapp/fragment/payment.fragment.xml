@@ -129,7 +129,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Non-GV' }">
 						<content>
 							<VBox >
-							<g:GridList items="{/NEGVPaymentMenthodsSet}" itemPress="onSelectNonGV" >
+							<g:GridList items="{ path: '/NEGVPaymentMenthodsSet', filters: [{ path: 'Advance', operator: 'EQ', value1: 'X' }] }" itemPress="onSelectNonGV" >
     							<g:items>
         							<g:GridListItem type="Active" >
             							<VBox class="sapUiSmallMargin">
@@ -250,9 +250,9 @@
 		<!--</endButton>-->
 		
 			<buttons>
-			<Button text="Print Transaction" type="Reject" press="onClear" class="cstmBtn"/>
+			<!-- <Button text="Print Transaction" type="Reject" press="onClear" class="cstmBtn"/> -->
 			 <Button text="Signature" type="Emphasized" press="OnSignaturePress" class="cstmBtn" visible="false"/>
-			<Button id="sbmtTrans" visible="false" text="Submit" type="Emphasized" press="onPressPaymentTest" class="cstmBtn"/>
+			<!-- <Button id="sbmtTrans" visible="false" text="Submit" type="Emphasized" press="onPressPaymentTest" class="cstmBtn"/> -->
 			<Button text="Close" type="Emphasized" press="onPressClose" class="cstmBtn"/>
 		</buttons>
 	</Dialog>

@@ -116,7 +116,7 @@ sap.ui.define([
                 aFilters.push(new sap.ui.model.Filter("Etype", sap.ui.model.FilterOperator.EQ, "C"));
                 aFilters.push(new sap.ui.model.Filter("EmployeeId", sap.ui.model.FilterOperator.EQ, empId));
                 aFilters.push(new sap.ui.model.Filter("SecretCode", sap.ui.model.FilterOperator.EQ, pwd));
-                aFilters.push(new sap.ui.model.Filter("Generate", sap.ui.model.FilterOperator.EQ, "N"));
+                aFilters.push(new sap.ui.model.Filter("Generate", sap.ui.model.FilterOperator.EQ, "Y"));
                 //EmployeeSet?$filter=Etype eq 'C' and EmployeeId eq '112' and SecretCode eq 'Abc#91234'
 
                 this.oModel.read("/EmployeeSet", {
@@ -527,8 +527,8 @@ sap.ui.define([
                             this._oDialogCashier.close();
                         }.bind(this));
                     } else {
-                         sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
-                        sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
+                        sap.ui.getCore().byId("totalAmountText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
+                        // sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(that.getView().byId("saleAmount").getValue()).toFixed(2));
                         this.getView().getModel("ShowPaymentSection").setProperty("/selectedMode", "");
                         sap.ui.getCore().byId("cashSbmtBtn").setEnabled(true);
                         this._oDialogPayment.open();
@@ -653,7 +653,7 @@ sap.ui.define([
                     if (balanceAmount <= 0) {
                         sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
                         sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                        sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                        // sap.ui.getCore().byId("sbmtTrans").setVisible(true);
                         event.setEnabled(false);
                         sap.m.MessageToast.show("Cash Payment Successful");
                         if (balanceAmount !== "0.00") {
@@ -675,7 +675,7 @@ sap.ui.define([
                     else {
                         sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
                         sap.ui.getCore().byId("cash").setValue("");
-                        sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                        // sap.ui.getCore().byId("sbmtTrans").setVisible(false);
                         sap.m.MessageToast.show("Cash Payment Successful");
                     }
 
@@ -1329,14 +1329,14 @@ sap.ui.define([
                         if (balanceAmount <= 0) {
                             sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
                             sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                            sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                            // sap.ui.getCore().byId("sbmtTrans").setVisible(true);
                             //that.onPressPaymentTest();
                             that.onOpenSignaturePad();
                         }
                         else {
                             sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
                             sap.ui.getCore().byId("cash").setValue("");
-                            sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                            // sap.ui.getCore().byId("sbmtTrans").setVisible(false);
                         }
 
 
@@ -1381,8 +1381,13 @@ sap.ui.define([
                         content: [],
                         beginButton: new sap.m.Button({
                             text: "Submit",
-                            press: this.onSubmitCardType.bind(this)
-                        }),
+                            press: function () {
+                                if (this.validateCardInputs()) {
+                                    this.onSubmitCardType(); // call your method only if valid
+                                    this._oDialogCardType.close();
+                                }
+                            }.bind(this)
+                        }).addStyleClass("cstmBtn"),
                         endButton: new sap.m.Button({
                             text: "Cancel",
                             press: function () {
@@ -1438,6 +1443,64 @@ sap.ui.define([
                 // sap.ui.getCore().byId("manCardApproveCode").setValue("");
                 // sap.ui.getCore().byId("manCardReciept").setValue("");
             },
+             validateCardInputs: function () {
+                var isValid = true;
+
+                // Amount field
+                if (!this._oAmountCardInput.getValue()) {
+                    this._oAmountCardInput.setValueState("Error");
+                    this._oAmountCardInput.setValueStateText("Amount is required");
+                    isValid = false;
+                } else {
+                    if (parseFloat(this._oAmountCardInput.getValue()) <= parseFloat(sap.ui.getCore().byId("totalSaleBalText").getText())) {
+                        this._oAmountCardInput.setValueState("None");
+                    }
+                    else {
+                        isValid = false;
+                        this._oAmountCardInput.setValueState("Error");
+                        sap.m.MessageBox.error("Entered Amount is more than Sale Amount");
+                    }
+
+                }
+
+                // Card Label
+                // if (!this._oSelectCardLabel.getValue()) {
+                //     this._oSelectCardLabel.setValueState("Error");
+                //     this._oSelectCardLabel.setValueStateText("Card Label is required");
+                //     isValid = false;
+                // } else {
+                //     this._oSelectCardLabel.setValueState("None");
+                // }
+
+                // Approval Code
+                if (!this._oSelectCardApproval.getValue()) {
+                    this._oSelectCardApproval.setValueState("Error");
+                    this._oSelectCardApproval.setValueStateText("Approval Code is required");
+                    isValid = false;
+                } else {
+                    this._oSelectCardApproval.setValueState("None");
+                }
+
+                // // Receipt Number
+                // if (!this._oSelectCardReciept.getValue()) {
+                //     this._oSelectCardReciept.setValueState("Error");
+                //     this._oSelectCardReciept.setValueStateText("Receipt Number is required");
+                //     isValid = false;
+                // } else {
+                //     this._oSelectCardReciept.setValueState("None");
+                // }
+
+                // Card Number
+                if (!this._oSelectCardNumber.getValue()) {
+                    this._oSelectCardNumber.setValueState("Error");
+                    this._oSelectCardNumber.setValueStateText("Receipt Number is required");
+                    isValid = false;
+                } else {
+                    this._oSelectCardNumber.setValueState("None");
+                }
+
+                return isValid;
+            },
             validateEnterAmount: function (oEvent) {
                 if (parseFloat(oEvent.getSource().getValue()) > parseFloat(sap.ui.getCore().byId("totalSaleBalText").getText())) {
                     sap.m.MessageToast.show("Entered Value is more than Sale Balance");
@@ -1459,16 +1522,20 @@ sap.ui.define([
                     sap.m.MessageToast.show("Please enter an amount");
                     return;
                 }
-                if (!sCardLabel) {
-                    sap.m.MessageToast.show("Please enter Card Label");
-                    return;
-                }
+                // if (!sCardLabel) {
+                //     sap.m.MessageToast.show("Please enter Card Label");
+                //     return;
+                // }
                 if (!sCardApproval) {
                     sap.m.MessageToast.show("Please enter Card Approval Code");
                     return;
                 }
-                if (!sCardReciept) {
-                    sap.m.MessageToast.show("Please enter Card Reciept Number");
+                // if (!sCardReciept) {
+                //     sap.m.MessageToast.show("Please enter Card Reciept Number");
+                //     return;
+                // }
+                  if (!sCardNumber) {
+                    sap.m.MessageToast.show("Please enter Card  Number");
                     return;
                 }
 
@@ -1505,7 +1572,7 @@ sap.ui.define([
                 if (balanceAmount <= 0) {
                     sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
                     sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                    // sap.ui.getCore().byId("sbmtTrans").setVisible(true);
                     sap.m.MessageToast.show("Manual Card Payment Successful");
                     that.onOpenSignaturePad();
                     //that.onPressPaymentTest();
@@ -1513,7 +1580,7 @@ sap.ui.define([
                 else {
                     sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
                     sap.ui.getCore().byId("cash").setValue("");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                    // sap.ui.getCore().byId("sbmtTrans").setVisible(false);
                     sap.m.MessageToast.show("Manual Card Payment Successful");
                 }
                 this._oDialogCardType.close();
@@ -1637,7 +1704,7 @@ sap.ui.define([
                     if (balanceAmount <= 0) {
                         sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
                         sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                        sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                        // sap.ui.getCore().byId("sbmtTrans").setVisible(true);
                         sap.m.MessageToast.show("Non EGV Payment Successful");
                         that.onOpenSignaturePad();
                         //that.onPressPaymentTest();
@@ -1645,7 +1712,7 @@ sap.ui.define([
                     else {
                         sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
                         sap.ui.getCore().byId("cash").setValue("");
-                        sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                        // sap.ui.getCore().byId("sbmtTrans").setVisible(false);
                         sap.m.MessageToast.show("Non EGV Payment Successful");
                     }
                     this._oDialogNonGV.close();
@@ -1926,15 +1993,15 @@ sap.ui.define([
                 if (balanceAmount <= 0) {
                     sap.ui.getCore().byId("totaltenderBal").setText(balanceAmount);
                     sap.ui.getCore().byId("totalSaleBalText").setText("0.00");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(true);
+                    // sap.ui.getCore().byId("sbmtTrans").setVisible(true);
                     sap.m.MessageToast.show(msg + " Redeemed Successfully");
-                    hat.onOpenSignaturePad();
+                    that.onOpenSignaturePad();
                     //that.onPressPaymentTest();
                 }
                 else {
                     sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(Math.abs(balanceAmount)).toFixed(2));
                     sap.ui.getCore().byId("cash").setValue("");
-                    sap.ui.getCore().byId("sbmtTrans").setVisible(false);
+                    // sap.ui.getCore().byId("sbmtTrans").setVisible(false);
                     sap.m.MessageToast.show(msg + " Redeemed Successfully");
                 }
                 that.getView().getModel(modelName).setData({});
@@ -1956,7 +2023,13 @@ sap.ui.define([
                 var balanceAmount = "";
                 if (dataObj.PaymentType === "CASH") {
                     var totSalBal = sap.ui.getCore().byId("totalSaleBalText").getText();
-                    balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal)
+                    var totTenderBal = sap.ui.getCore().byId("totaltenderBal").getText();
+                    if(totTenderBal === "" || totTenderBal === "0" || totTenderBal === "0.00"){
+                        totTenderBal = "0.00";
+                    }else{
+                        sap.ui.getCore().byId("totaltenderBal").setText(parseFloat(dataObj.Amount) + parseFloat(totTenderBal));
+                    }
+                    balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal) + parseFloat(totTenderBal);
                     sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(balanceAmount).toFixed(2));
                     this.getView().getModel("ShowPaymentSection").setProperty("/allEntries", this.aPaymentEntries)
                     this.getView().getModel("ShowPaymentSection").refresh();
@@ -2111,6 +2184,13 @@ sap.ui.define([
                 this.oModel.create("/PaymentMethodsSet", data, {
                     success: function (oData, response) {
                         var totSalBal = sap.ui.getCore().byId("totalSaleBalText").getText();
+                        var totTenderBal = sap.ui.getCore().byId("totaltenderBal").getText();
+                    if(totTenderBal === "" || totTenderBal === "0" || totTenderBal === "0.00"){
+                        totTenderBal = "0.00";
+                    }else{
+                        sap.ui.getCore().byId("totaltenderBal").setText(parseFloat(dataObj.Amount) + parseFloat(totTenderBal));
+                    }
+                    balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal) + parseFloat(totTenderBal);
                         balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal)
                         sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(balanceAmount).toFixed(2));
                         that.getView().getModel("ShowPaymentSection").setProperty("/allEntries", that.aPaymentEntries)

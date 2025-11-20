@@ -62,7 +62,7 @@
 				<VBox >
 					<l:VerticalLayout class=" sapUiSmallMarginBegin sapUiContentPadding equalColumns" width="100%">
 						
-						<GenericTile header="CANCEL" frameType="OneByHalf" press="onPressCan" class="customTile" headerImage="sap-icon://sys-cancel-2">
+						<GenericTile id="Cancel" pressEnabled="false" header="CANCEL" frameType="OneByHalf" press="onPressCan" class="customTile" headerImage="sap-icon://sys-cancel-2">
 							<TileContent>
 								<!--<Button type="Transparent" icon="sap-icon://sys-cancel-2"/>-->
 							</TileContent>
