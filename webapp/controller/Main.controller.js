@@ -828,6 +828,9 @@ sap.ui.define([
                 this.printIP = aItems[0]?.getText();
                 var tranNumber = this.getView().byId("tranNumber").getCount().toString();
                 var sPath = "/PrintPDFSet(TransactionId='" + tranNumber + "',PDFType='A')";
+                if (that._pAddRecordDialog) {
+                                    that._pAddRecordDialog.setBusy(true);
+                                }
                 this.oModel.read(sPath, {
                     urlParameters: { "$expand": "ToPDFList" },
                     success: async function (oData) {
@@ -853,6 +856,9 @@ sap.ui.define([
 
                             for (const oRow of aResults) {
                                 await that.showPDF(oRow.Value);
+                                 if (that._pAddRecordDialog) {
+                                    that._pAddRecordDialog.setBusy(false);
+                                }
                             }
 
 
@@ -1269,27 +1275,121 @@ sap.ui.define([
                 var oItem = oEvent.getParameter("listItem") || oEvent.getSource();
                 var oVBox = oItem.getContent ? oItem.getContent()[0] : oItem.getAggregation("content")[0];
                 var aItems = oVBox.getItems ? oVBox.getItems() : oVBox.getAggregation("items");
-                var terminalID = aItems[0]?.getText();
-                var machineID = aItems[1]?.getText();
-                this.initiateTransaction(terminalID, machineID);
+                this.terminalID = aItems[0]?.getText();
+                this.machineID = aItems[1]?.getText();
+                this.onOpenPaymentDialog();
+                //this.initiateTransaction(terminalID, machineID);
             },
-            initiateTransaction: function (termID, machID) {
+             onOpenPaymentDialog: function () {
+                var oView = this;
+
+                if (!this._oPaymentDialog) {
+                    this._oPaymentDialog = new sap.m.Dialog({
+                        title: "Select Payment Method",
+                        type: "Message",
+                        content: [
+                            new sap.m.RadioButtonGroup("idPaymentOptions", {
+                                columns: 1,
+                                selectedIndex: 0, // default selection (AANI)
+                                buttons: [
+                                    new sap.m.RadioButton({ text: "Card Payment" }),
+                                    new sap.m.RadioButton({ text: "AANI" }),
+                                    new sap.m.RadioButton({ text: "NPCI" }),
+                                    new sap.m.RadioButton({ text: "ADCB Touch Points" }),
+                                    new sap.m.RadioButton({ text: "TAMARA" }),
+                                    new sap.m.RadioButton({ text: "TABBY" })
+
+
+                                ]
+                            })
+                        ],
+                        beginButton: new sap.m.Button({
+                            text: "Submit",
+                            press: function () {
+                                var oRbGroup = sap.ui.getCore().byId("idPaymentOptions");
+                                var iSelectedIndex = oRbGroup.getSelectedIndex();
+                                var sSelectedText = oRbGroup.getButtons()[iSelectedIndex].getText();
+
+                                sap.m.MessageToast.show("Selected: " + sSelectedText);
+
+                                // 👉 you can also store it in model instead of toast
+                                // oView.getModel("JMBPCreate").setProperty("/paymentMethod", sSelectedText);
+
+                                oView._oPaymentDialog.close();
+                                oView.initiateTransaction(oView.terminalID, oView.machineID, sSelectedText);
+                            }
+                        }).addStyleClass("cstmBtn"),
+                        endButton: new sap.m.Button({
+                            text: "Cancel",
+                            press: function () {
+                                oView._oPaymentDialog.close();
+                            }
+                        }).addStyleClass("cstmBtn")
+                    });
+
+                    oView.getView().addDependent(this._oPaymentDialog);
+                }
+
+                this._oPaymentDialog.open();
+            },
+            initiateTransaction: function (termID, machID, type) {
                 var that = this;
+                var transType = "";
+                var PaymentType = "";
+                var PaymentMethodName = "";
+                var PaymentMethod = "";
+
+                if (type === "AANI") {
+                    transType = "pushPaymentIppSale";
+                    PaymentType = "AANI";
+                    PaymentMethodName = "AANI";
+                    PaymentMethod = "997";
+
+                } else if (type === "NPCI") {
+                    transType = "pushPaymentNpciQRSale";
+                    PaymentType = "NPCI";
+                    PaymentMethodName = "NPCI";
+                    PaymentMethod = "996";
+                }
+                else if (type === "ADCB Touch Points") {
+                    transType = "pushPaymentTouchPointsRedeem";
+                    PaymentType = "ADCB TOUCH POINTS";
+                    PaymentMethodName = "ADCB Touch Redemption";
+                    PaymentMethod = "001";
+                }
+                else if (type === "TAMARA") {
+                    transType = "pushPaymentTAMARA";
+                    PaymentType = "TAMARA";
+                    PaymentMethodName = "TAMARA";
+                    PaymentMethod = "060";
+                }
+                else if (type === "TABBY") {
+                    transType = "pushPaymentTABBY";
+                    PaymentType = "TABBY";
+                    PaymentMethodName = "TABBY";
+                    PaymentMethod = "040";
+                } else {
+                    transType = "pushPaymentSale";
+                    PaymentType = "CARD";
+                    PaymentMethodName = "";
+                    PaymentMethod = "";
+                }
+
                 sap.ui.core.BusyIndicator.show();
                 // BusyDialog.open();
                 var oPayload = {
                     "Tid": termID,
                     "Mid": machID,
-                    "TransactionType": "pushPaymentSale",
-                    "SourceId": this.getView().byId("tranNumber").getCount().toString() + this.sourceIdCounter.toString(),
+                    "TransactionType": transType,
+                    "SourceId": this.getView().byId("tranNumber").getCount().toString() + this.getLetter(this.sourceIdCounter),
                     "Amount": this.cashAmount.toString()
 
                 }
+                var sourceId = oPayload.SourceId;
 
                 this.oModel.create("/PaymentStartTransactionSet", oPayload, {
                     success: function (oData) {
-                        that.sourceIdCounter = that.sourceIdCounter + 1;
-                        that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
+                        
                         sap.ui.getCore().byId("creditAmount").setValue("");
                         that.getView().getModel("ShowPaymentSection").setProperty("/Terminal", []);
                         that.getView().getModel("ShowPaymentSection").refresh();
@@ -1302,8 +1402,8 @@ sap.ui.define([
                             "PaymentDate": new Date(),
                             "Amount": oData.Amount,
                             "Currency": "AED",
-                            "PaymentMethod": "",
-                            "PaymentMethodName": "Card",
+                            "PaymentMethod": PaymentMethod,
+                            "PaymentMethodName": PaymentMethodName,
                             "Tid": oData.Tid,
                             "Mid": oData.Mid,
                             "CardType": oData.CardType,
@@ -1311,13 +1411,15 @@ sap.ui.define([
                             "CardNumber": oData.CardNumber,
                             "AuthorizationCode": oData.AuthorizationCode,
                             "CardReceiptNo": oData.CardReceiptNo,
-                            "PaymentType": "CARD",
+                            "PaymentType": PaymentType,
                             "VoucherNumber": "",
-                            "SourceId": that.getView().byId("tranNumber").getCount().toString() + that.paymentEntSourceCounter.toString()
+                            "ChangeAmount": "0.00",
+                            "SourceId": sourceId
 
 
                         });
-
+                        that.sourceIdCounter = that.sourceIdCounter + 1;
+                        that.paymentEntSourceCounter = that.paymentEntSourceCounter + 1;
                         var saleAmount = sap.ui.getCore().byId("totalAmountText").getText();
                         var paidAmount = 0;
                         for (var count1 = 0; count1 < that.aPaymentEntries.length; count1++) {
@@ -2018,10 +2120,11 @@ sap.ui.define([
                 var oContext = oItem.getBindingContext("ShowPaymentSection");
                 var dataObj = oModel.getObject(oContext.sPath);
                 var iIndex = oContext.getPath().split("/").pop();
-                aEntries.splice(iIndex, 1);
+                
                 //this.aPaymentEntries.splice(iIndex,1);
                 var balanceAmount = "";
                 if (dataObj.PaymentType === "CASH") {
+                    aEntries.splice(iIndex, 1);
                     var totSalBal = sap.ui.getCore().byId("totalSaleBalText").getText();
                     var totTenderBal = sap.ui.getCore().byId("totaltenderBal").getText();
                     if(totTenderBal === "" || totTenderBal === "0" || totTenderBal === "0.00"){
@@ -2034,7 +2137,12 @@ sap.ui.define([
                     this.getView().getModel("ShowPaymentSection").setProperty("/allEntries", this.aPaymentEntries)
                     this.getView().getModel("ShowPaymentSection").refresh();
                 }
+                else if (dataObj.PaymentType === "CARD") {
+
+                    this.voidCardPament(dataObj, aEntries,iIndex);
+                }
                 else {
+                    aEntries.splice(iIndex, 1);
                     this.deRedeemVoucher(dataObj);
                 }
 
@@ -2171,6 +2279,60 @@ sap.ui.define([
                 );
 
 
+
+            },
+             voidCardPament: function (dataObj, aEntries,iIndex) {
+                var that = this;
+                var balanceAmount = "";
+                sap.ui.core.BusyIndicator.show();
+                var oPayload = {
+                    "TransactionType": "pushPaymentVoid",
+                    "SourceId": this.getView().byId("tranNumber").getCount().toString() + this.getLetter(this.sourceIdCounter),
+                    "OriginalId": dataObj.SourceId,
+                    "Tid": dataObj.Tid,
+                    "Mid": dataObj.Mid,
+
+                }
+                
+
+                this.oModel.create("/PaymentStartTransactionSet", oPayload, {
+                    success: function (oData) {
+                        aEntries.splice(iIndex, 1);
+                        that.sourceIdCounter = that.sourceIdCounter + 1;
+                        sap.ui.core.BusyIndicator.hide();
+                        that.getView().setBusy(false);
+                        var totSalBal = sap.ui.getCore().byId("totalSaleBalText").getText();
+                        balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal)
+                        sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(balanceAmount).toFixed(2));
+                        that.aPaymentEntries = that.aPaymentEntries.filter(function (oEntry) {
+                              return oEntry.SourceId !== dataObj.SourceId;
+                            });
+                        that.getView().getModel("ShowPaymentSection").setProperty("/allEntries", that.aPaymentEntries)
+                        that.getView().getModel("ShowPaymentSection").refresh();
+
+                    },
+                    error: function (oError) {
+                        var errMessage = "";
+                        sap.ui.core.BusyIndicator.hide();
+                        if (JSON.parse(oError.responseText).error.message.value) {
+                            errMessage = JSON.parse(oError.responseText).error.message.value;
+                        }
+                        else {
+                            errMessage = "Error During Cancel Transaction "
+                        }
+
+                        sap.m.MessageBox.show(errMessage, {
+                            icon: sap.m.MessageBox.Icon.Error,
+                            title: "Error",
+                            actions: [MessageBox.Action.OK],
+                            onClose: function (oAction) {
+
+                            }
+                        });
+
+
+                    }
+                });
 
             },
             deRedeemVoucher: function (dataObj) {
@@ -2439,6 +2601,9 @@ sap.ui.define([
                     oTextArea.setValue(sValue.substring(0, 250));
                     sap.m.MessageToast.show("Maximum 250 characters allowed");
                 }
-            }
+            },
+            getLetter: function(counter) {
+             return String.fromCharCode(65 + counter);
+         }
         });
     });

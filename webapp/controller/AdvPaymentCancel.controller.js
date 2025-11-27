@@ -779,6 +779,9 @@ sap.ui.define([
                 this.printIP = aItems[0]?.getText();
                 var tranNumber = this.getView().byId("tranNumber").getCount().toString();
                 var sPath = "/PrintPDFSet(TransactionId='" + tranNumber + "',PDFType='A')";
+                 if (that._pAddRecordDialog) {
+                                    that._pAddRecordDialog.setBusy(true);
+                                }
                 this.oModel.read(sPath, {
                     urlParameters: { "$expand": "ToPDFList" },
                     success: async function (oData) {
@@ -804,6 +807,9 @@ sap.ui.define([
 
                             for (const oRow of aResults) {
                                 await that.showPDF(oRow.Value);
+                                 if (that._pAddRecordDialog) {
+                                    that._pAddRecordDialog.setBusy(false);
+                                }
                             }
 
 
