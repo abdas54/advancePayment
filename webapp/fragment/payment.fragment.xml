@@ -67,7 +67,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'CreditNote' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="creditNote" placeholder="Enter Credit Note " class="customInputHeight inputStyle" liveChange="onCardNumberChange" type="Number"/>
+								<Input id="creditNote" placeholder="Enter Credit Note " maxLength="30" class="customInputHeight inputStyle" liveChange="onCardNumberChange" type="Number"/>
 								<Button text="Redeem" press="onSubmit"/>
 							</VBox>
 						</content>
@@ -75,7 +75,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Advance Payment' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="advPayment" placeholder="Enter Advance Payment " class="customInputHeight inputStyle" liveChange="onCardNumberChange" type="Number"/>
+								<Input id="advPayment" placeholder="Enter Advance Payment " class="customInputHeight inputStyle" maxLength="30" liveChange="onCardNumberChange" type="Number"/>
 								<Button text="Submit" press="onSubmit"/>
 							</VBox>
 						</content>
@@ -84,7 +84,7 @@
 						  <content>
                                 <VBox class="sapUiSmallMargin">
                                     <HBox>
-                                        <Input id="giftVoucher" placeholder="Enter Gift Payment "  class="inputStyle sapUiSmallMarginBottom customInputHeight inputStyle">
+                                        <Input id="giftVoucher" placeholder="Enter Gift Payment " maxLength="30" class="inputStyle sapUiSmallMarginBottom customInputHeight inputStyle">
                                             <layoutData>
                                                 <FlexItemData growFactor="1"/>
                                             </layoutData>
