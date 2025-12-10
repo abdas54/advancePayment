@@ -600,6 +600,7 @@ sap.ui.define([
                 var cashAmount = sap.ui.getCore().byId("cash").getValue();
                 this.paymentEntSourceCounter = this.paymentEntSourceCounter + 1;
                 this.paymentId = this.paymentId + 1;
+                var totSalBal = sap.ui.getCore().byId("totalSaleBalText").getText();
                 var bFlag = false;
                 var maxcount = "";
                 // if (this.aPaymentEntries.length > 0) {
@@ -613,6 +614,7 @@ sap.ui.define([
                 //         }
                 //     }
                 // }
+                if(totSalBal !== "0.00" ){
                 if (cashAmount !== 0 && cashAmount !== "0.00") {
 
                     // if (bFlag) {
@@ -684,6 +686,11 @@ sap.ui.define([
                     //var tenderChangeAmount = this.getView().byId("totaltenderBal").getValue();
 
                 }
+            }
+            else{
+                sap.ui.getCore().byId("cash").setValue("");
+                sap.m.MessageToast.show("Sale Balance is 0.00");
+            }
             },
             onPressPaymentTest: function () {
                 this.onPressPayment(true);
@@ -2137,6 +2144,9 @@ sap.ui.define([
                     }
                     balanceAmount = parseFloat(dataObj.Amount) + parseFloat(totSalBal) + parseFloat(totTenderBal);
                     sap.ui.getCore().byId("totalSaleBalText").setText(parseFloat(balanceAmount).toFixed(2));
+                    if(parseFloat(balanceAmount).toFixed(2) > 0){
+                        sap.ui.getCore().byId("cashSbmtBtn").setEnabled(true);
+                    }
                     this.getView().getModel("ShowPaymentSection").setProperty("/allEntries", this.aPaymentEntries)
                     this.getView().getModel("ShowPaymentSection").refresh();
                 }

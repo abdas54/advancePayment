@@ -75,7 +75,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Advance Payment' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="advPayment" placeholder="Enter Advance Payment " class="customInputHeight inputStyle" maxLength="30" liveChange="onCardNumberChange" type="Number"/>
+								<Input id="advPayment" placeholder="Enter Advance Payment " class="customInputHeight inputStyle" maxLength="31" liveChange="onCardNumberChange" type="Number"/>
 								<Button text="Submit" press="onSubmit"/>
 							</VBox>
 						</content>
