@@ -2150,9 +2150,9 @@ sap.ui.define([
                     this.getView().getModel("ShowPaymentSection").setProperty("/allEntries", this.aPaymentEntries)
                     this.getView().getModel("ShowPaymentSection").refresh();
                 }
-                else if (dataObj.PaymentType === "CARD") {
+                else if (dataObj.PaymentType === "CARD" || dataObj.PaymentType === "AANI"  || dataObj.PaymentType === "ADCB TOUCH POINTS") {
 
-                    this.voidCardPament(dataObj, aEntries,iIndex);
+                    this.voidCardPament(dataObj, aEntries, iIndex);
                 }
                 else {
                     aEntries.splice(iIndex, 1);
@@ -2304,7 +2304,14 @@ sap.ui.define([
                     "OriginalId": dataObj.SourceId,
                     "Tid": dataObj.Tid,
                     "Mid": dataObj.Mid,
+                    "Amount": dataObj.Amount
 
+                }
+                if(dataObj.PaymentType === "AANI"){
+                    oPayload.TransactionType = "pushPaymentIppRefund";
+                }
+                 if(dataObj.PaymentType === "ADCB TOUCH POINTS"){
+                    oPayload.TransactionType = "pushPaymentTouchPointsVoid";
                 }
                 
 
