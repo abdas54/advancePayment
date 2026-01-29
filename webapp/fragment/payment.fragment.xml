@@ -150,7 +150,7 @@
 					<Panel visible="{= ${ShowPaymentSection>/selectedMode} === 'Cash' }">
 						<content>
 							<VBox class="sapUiSmallMargin">
-								<Input id="cash" placeholder="Enter Amount " type="Number" maxLength="16" class="sapUiSmallMarginBottom customInputHeight inputStyle" />
+								<Input id="cash" placeholder="Enter Amount " type="Number" maxLength="16" class="sapUiSmallMarginBottom customInputHeight inputStyle" change="onCashLiveChange" />
 								<Button id="cashSbmtBtn" text="Submit" press="onCashSubmit"/>
 							</VBox>
 							
